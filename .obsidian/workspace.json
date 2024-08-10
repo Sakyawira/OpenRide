@@ -1,0 +1,160 @@
+{
+  "main": {
+    "id": "2c2ef153227c0706",
+    "type": "split",
+    "children": [
+      {
+        "id": "3926545dfab15939",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "45b635160a39beb6",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "README.md",
+                "mode": "source",
+                "source": false
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "60057caaac8de642",
+    "type": "split",
+    "children": [
+      {
+        "id": "02014590d5419071",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "1055d1a495c65ca1",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical"
+              }
+            }
+          },
+          {
+            "id": "b3625397e338cfc6",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              }
+            }
+          },
+          {
+            "id": "0ef546a64ad38f30",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {}
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "2bdc40222ef5bbec",
+    "type": "split",
+    "children": [
+      {
+        "id": "bac2f388e55e0ae4",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "d738768b8ccae525",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "README.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          },
+          {
+            "id": "9f1f6d380cacfd01",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "README.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          },
+          {
+            "id": "cad82028da0dce1e",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true
+              }
+            }
+          },
+          {
+            "id": "a7ca874b4965f17c",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "README.md"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false
+    }
+  },
+  "active": "45b635160a39beb6",
+  "lastOpenFiles": [
+    "COPYING",
+    "license",
+    "images/logo.png.sb-1f99270b-IKWJGS",
+    "images/logo.png",
+    "images",
+    "image/logo.png",
+    "image/20240809_233753 (1)_upscayl_5x_realesrgan-x4plus.png",
+    "image"
+  ]
+}
