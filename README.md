@@ -2,7 +2,7 @@
 
 [![Repository License](https://img.shields.io/badge/license-GPL%20v3.0-brightgreen.svg)](https://github.com/Sakyawira/OpenRide/blob/main/COPYING)
 <img
-  src="https://github.com/Sakyawira/OpenRide/blob/main/images/logo.png?raw=true"
+  src="https://github.com/Sakyawira/OpenRide/blob/main/images/logo.svg?raw=true"
   alt="ESLint Plugin Perfectionist logo"
   align="right"
   height="160"
