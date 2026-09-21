@@ -10,10 +10,8 @@ class OpenRideRiderApp extends StatelessWidget {
   const OpenRideRiderApp({super.key, this.controller});
   final RiderController? controller;
   @override
-  Widget build(BuildContext context) => MaterialApp(
+  Widget build(BuildContext context) => OpenRideThemedApp(
     title: 'OpenRide Rider',
-    debugShowCheckedModeBanner: false,
-    theme: openRideTheme(),
     home: RiderHome(controller: controller),
   );
 }
@@ -165,6 +163,7 @@ class _RiderHomeState extends State<RiderHome> {
                         ),
                       ),
                       const Text('RIDER'),
+                      const OpenRideThemeToggle(),
                       IconButton(
                         tooltip: 'Connection settings',
                         onPressed: connection,
@@ -208,7 +207,9 @@ class _RiderHomeState extends State<RiderHome> {
                       final requestForm = Container(
                         padding: const EdgeInsets.all(24),
                         decoration: BoxDecoration(
-                          color: OpenRideColors.mist,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.secondaryContainer,
                           borderRadius: BorderRadius.circular(24),
                         ),
                         child: Form(

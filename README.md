@@ -16,7 +16,7 @@ The mission is to give drivers more choice and build a community-led alternative
 | [mockride-rider-frontend](mockride-rider-frontend/README.md)   | Independent React rider example                             |
 | [mockride-driver-frontend](mockride-driver-frontend/README.md) | Independent React driver example                            |
 | [openride-app-backend](openride-app-backend/README.md)         | Shared API, coordinator, interfaces and storage adapters    |
-| [openride-design-system](openride-design-system/README.md)     | Styled Flutter components, branding and Widgetbook          |
+| [openride-design-system](openride-design-system/README.md)     | Flutter/React components, themes, Widgetbook and Storybook  |
 
 See [database adapters and free Render setup](docs/storage-conformance.md), and [architecture decisions](docs/architecture.md) for the minimal-server approach and future distributed/P2P experiments.
 

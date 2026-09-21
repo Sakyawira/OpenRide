@@ -4,51 +4,80 @@ import 'package:widgetbook/widgetbook.dart';
 
 void main() => runApp(const OpenRideCatalog());
 
-class OpenRideCatalog extends StatelessWidget {
-  const OpenRideCatalog({super.key});
+class OpenRideCatalog extends StatefulWidget {
+  const OpenRideCatalog({super.key, this.initialRoute = '/'});
+  final String initialRoute;
+
+  @override
+  State<OpenRideCatalog> createState() => _OpenRideCatalogState();
+}
+
+class _OpenRideCatalogState extends State<OpenRideCatalog> {
+  bool dark = false;
 
   @override
   Widget build(BuildContext context) => Widgetbook.material(
+    initialRoute: widget.initialRoute,
     lightTheme: openRideTheme(),
-    header: const Padding(
-      padding: EdgeInsets.all(16),
-      child: Row(
-        children: [
-          OpenRideLogo(size: 36),
-          SizedBox(width: 8),
-          Text('OpenRide UI'),
-        ],
-      ),
-    ),
-    home: Theme(
-      data: openRideTheme(),
-      child: const Scaffold(
-        body: Center(
-          child: Padding(
-            padding: EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
+    darkTheme: openRideTheme(brightness: Brightness.dark),
+    themeMode: dark ? ThemeMode.dark : ThemeMode.light,
+    // Widgetbook retains its header; Builder listens to the live theme.
+    header: Builder(
+      builder: (context) => Padding(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          children: [
+            const Row(
               children: [
-                OpenRideLogo(size: 112),
-                SizedBox(height: 24),
-                Text(
-                  'OpenRide Design System',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800),
-                ),
-                SizedBox(height: 12),
-                Text(
-                  'Choose a component to explore its states.',
-                  textAlign: TextAlign.center,
+                OpenRideLogo(size: 36),
+                SizedBox(width: 8),
+                Text('OpenRide UI'),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                const Expanded(child: Text('Dark mode')),
+                Semantics(
+                  label: 'Dark mode',
+                  child: Switch(
+                    key: const ValueKey('catalogue-theme-toggle'),
+                    value: Theme.of(context).brightness == Brightness.dark,
+                    onChanged: (value) => setState(() => dark = value),
+                  ),
                 ),
               ],
             ),
+          ],
+        ),
+      ),
+    ),
+    home: const Scaffold(
+      body: Center(
+        child: Padding(
+          padding: EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              OpenRideLogo(size: 112),
+              SizedBox(height: 24),
+              Text(
+                'OpenRide Design System',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800),
+              ),
+              SizedBox(height: 12),
+              Text(
+                'Choose a component to explore its states.',
+                textAlign: TextAlign.center,
+              ),
+            ],
           ),
         ),
       ),
     ),
     appBuilder: (context, child) => Theme(
-      data: openRideTheme(),
+      data: Theme.of(context),
       child: Scaffold(
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(24),

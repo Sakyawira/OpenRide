@@ -22,6 +22,7 @@ class OpenRideTripPanel extends StatelessWidget {
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: OpenRideColors.deepNavy,
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
         borderRadius: BorderRadius.circular(22),
       ),
       child: DefaultTextStyle(

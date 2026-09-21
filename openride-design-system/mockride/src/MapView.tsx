@@ -1,12 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
-import type { GeoPoint } from '@sakyawira/openride-protocol';
 import 'leaflet/dist/leaflet.css';
 
-interface MapViewProps {
-  pickup?: GeoPoint;
-  destination?: GeoPoint;
-  onSelect?(point: GeoPoint): void;
+export interface MapPoint {
+  latitude: number;
+  longitude: number;
+}
+
+export interface MapViewProps {
+  pickup?: MapPoint;
+  destination?: MapPoint;
+  onSelect?(point: MapPoint): void;
 }
 const TILE_URL =
   import.meta.env.VITE_OSM_TILE_URL ?? 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';

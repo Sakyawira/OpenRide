@@ -67,6 +67,29 @@ class _OpenRideMapState extends State<OpenRideMap> {
     1,
     0,
   ]);
+  // In dark mode, pale land becomes navy and dark labels become light blue.
+  static const darkTileTone = ColorFilter.matrix([
+    -0.084206,
+    -0.283275,
+    -0.028597,
+    0,
+    116,
+    -0.095878,
+    -0.322541,
+    -0.032561,
+    0,
+    158,
+    -0.099213,
+    -0.33376,
+    -0.033693,
+    0,
+    177,
+    0,
+    0,
+    0,
+    1,
+    0,
+  ]);
   static const tileUrl = String.fromEnvironment(
     'OSM_TILE_URL',
     defaultValue: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
@@ -152,9 +175,11 @@ class _OpenRideMapState extends State<OpenRideMap> {
       children: [
         DecoratedBox(
           decoration: BoxDecoration(
-            color: OpenRideColors.canvas,
+            color: Theme.of(context).scaffoldBackgroundColor,
             borderRadius: BorderRadius.circular(22),
-            border: Border.all(color: OpenRideColors.border),
+            border: Border.all(
+              color: Theme.of(context).colorScheme.outlineVariant,
+            ),
           ),
           child: Padding(
             padding: const EdgeInsets.all(1),
@@ -173,7 +198,9 @@ class _OpenRideMapState extends State<OpenRideMap> {
                         initialZoom: 13,
                         minZoom: 3,
                         maxZoom: 19,
-                        backgroundColor: OpenRideColors.subtle,
+                        backgroundColor: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainerHighest,
                         interactionOptions: const InteractionOptions(
                           flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
                         ),
@@ -193,7 +220,10 @@ class _OpenRideMapState extends State<OpenRideMap> {
                       children: [
                         if (loadTiles)
                           ColorFiltered(
-                            colorFilter: tileTone,
+                            colorFilter:
+                                Theme.of(context).brightness == Brightness.dark
+                                ? darkTileTone
+                                : tileTone,
                             child: TileLayer(
                               urlTemplate: tileUrl,
                               userAgentPackageName:
@@ -237,16 +267,22 @@ class _OpenRideMapState extends State<OpenRideMap> {
                       top: 12,
                       right: 12,
                       child: Material(
-                        color: OpenRideColors.canvas,
+                        color: Theme.of(context).scaffoldBackgroundColor,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
-                          side: const BorderSide(color: OpenRideColors.border),
+                          side: BorderSide(
+                            color: Theme.of(context).colorScheme.outlineVariant,
+                          ),
                         ),
                         child: IconButton(
                           tooltip: 'Show both stops',
-                          color: OpenRideColors.navy,
-                          hoverColor: OpenRideColors.mist,
-                          highlightColor: OpenRideColors.aqua,
+                          color: Theme.of(context).colorScheme.primary,
+                          hoverColor: Theme.of(
+                            context,
+                          ).colorScheme.primaryContainer,
+                          highlightColor: Theme.of(
+                            context,
+                          ).colorScheme.primary.withValues(alpha: 0.2),
                           onPressed: fitStops,
                           icon: const Icon(Icons.center_focus_strong),
                         ),
@@ -284,9 +320,12 @@ class _OpenRideMapState extends State<OpenRideMap> {
               onPressed: () => launchUrl(
                 Uri.parse('https://www.openstreetmap.org/copyright'),
               ),
-              child: const Text(
+              child: Text(
                 '© OpenStreetMap contributors',
-                style: TextStyle(fontSize: 10, color: OpenRideColors.muted),
+                style: TextStyle(
+                  fontSize: 10,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
             ),
           ],
@@ -327,6 +366,9 @@ class _MapLegend extends StatelessWidget {
         decoration: BoxDecoration(
           color: color,
           borderRadius: BorderRadius.circular(label == 'P' ? 10 : 6),
+          border: Border.all(
+            color: Theme.of(context).colorScheme.outlineVariant,
+          ),
         ),
         child: Text(
           label,
@@ -340,7 +382,10 @@ class _MapLegend extends StatelessWidget {
       const SizedBox(width: 5),
       Text(
         title,
-        style: const TextStyle(fontSize: 11, color: OpenRideColors.muted),
+        style: TextStyle(
+          fontSize: 11,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
       ),
     ],
   );

@@ -1,6 +1,6 @@
 # OpenRide — Design System
 
-The Flutter package `openride_design_system` owns the actual styled components used by the app, its logo, colour tokens and theme. It imports neither application controllers nor backend models.
+The Flutter package `openride_design_system` owns the actual styled components used by the OpenRide apps, its logo, colour tokens and light/dark themes. `mockride/` is a separate React workspace package containing the actual shared MockRide components, CSS tokens and Storybook. It imports neither application controllers nor backend models.
 
 Public components: `OpenRideLogo`, `OpenRideButton`, `OpenRideBadge`, `OpenRideNotice`, `OpenRideOfferCard`, and `OpenRideTripPanel`. Presentation data and callbacks keep business logic in the frontend.
 
@@ -23,7 +23,27 @@ cd ../..
 pnpm design:serve
 ```
 
-Open http://127.0.0.1:4200. No paid account or cloud integration is needed.
+Open http://127.0.0.1:4200. The **Dark mode** switch above the navigation changes the catalogue and the actual component previews together, without resetting the selected component or its controls. No paid account or cloud integration is needed.
+
+## MockRide Storybook
+
+```sh
+# From the repository root
+pnpm install
+pnpm design:mockride
+# Static build for eventual hosting
+pnpm design:mockride:build
+```
+
+Open http://127.0.0.1:4201 and use the **Light theme / Dark theme** toolbar button. The React catalogue imports the same buttons, notices, badges, journey/offer cards, trip panel and Leaflet map used by both MockRide apps. Form styles and brand treatments are included in the style guide. Storybook fixtures do not call the booking backend. Static output goes to `mockride/dist/`.
+
+## Appearance in the apps
+
+OpenRide's sun/moon **Appearance** menu offers Light, Dark and Use device theme. It defaults to the device setting; a manual choice lasts for the current app session. Both Flutter apps use `OpenRideThemedApp`, and components read their surrounding `ThemeData` colour roles.
+
+Both MockRide apps have an **Appearance** selector with the same three choices. They remember the preference in browser storage and share it across tabs on the same origin. Device theme follows operating-system changes. The shared CSS uses semantic variables for surfaces, text, borders, focus and notices.
+
+Both brands preserve their accent colours in dark mode. Map tiles receive a dark tonal filter; pins, controls and attribution stay separate and readable. Theme changes do not reset ride forms, map pins or booking state.
 
 ## Reuse and eventual release
 

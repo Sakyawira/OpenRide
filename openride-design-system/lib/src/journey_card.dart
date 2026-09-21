@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'branding.dart';
 
 /// Rider-facing presentation; all status and money formatting comes from the client.
 class OpenRideJourneyCard extends StatelessWidget {
@@ -19,9 +18,9 @@ class OpenRideJourneyCard extends StatelessWidget {
     margin: const EdgeInsets.only(bottom: 16),
     padding: const EdgeInsets.all(24),
     decoration: BoxDecoration(
-      color: Colors.white,
+      color: Theme.of(context).colorScheme.surface,
       borderRadius: BorderRadius.circular(24),
-      border: Border.all(color: OpenRideColors.mist),
+      border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
     ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -31,8 +30,21 @@ class OpenRideJourneyCard extends StatelessWidget {
           runSpacing: 8,
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
-            Chip(label: Text(status), backgroundColor: OpenRideColors.mist),
-            Text(provider, style: const TextStyle(color: OpenRideColors.muted)),
+            Chip(
+              label: Text(
+                status,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                ),
+              ),
+              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+            ),
+            Text(
+              provider,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
           ],
         ),
         const SizedBox(height: 18),

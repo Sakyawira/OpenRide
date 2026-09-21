@@ -1,7 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { OpenRideClient, OpenRideClientError } from '@sakyawira/openride-protocol/client';
 import type { RideRequest, RideQuote, GeoPoint } from '@sakyawira/openride-protocol';
-import { MapView } from './MapView';
+import {
+  MapView,
+  ThemeToggle,
+  Notice,
+  Button,
+  JourneyCard,
+} from '@sakyawira/mockride-design-system';
 
 function message(error: unknown): string {
   return error instanceof Error
@@ -102,6 +108,7 @@ function Shell({ role, children, error, notice, settings, connect }: ShellProps)
           <span className="mark">M↗</span> MOCKRIDE<span className="role">{role}</span>
         </a>
         <nav>
+          <ThemeToggle />
           <a href={role === 'rider' ? '/mockride/driver/' : '/mockride/rider/'}>
             Open {role === 'rider' ? 'driver' : 'rider'} app ↗
           </a>
@@ -132,7 +139,7 @@ function Shell({ role, children, error, notice, settings, connect }: ShellProps)
             {role} token
             <input name="token" defaultValue={settings.token} required />
           </label>
-          <button>Connect</button>
+          <Button type="submit">Connect</Button>
           {connectionError && <p role="alert">{connectionError}</p>}
         </form>
       </details>
@@ -142,15 +149,9 @@ function Shell({ role, children, error, notice, settings, connect }: ShellProps)
           THE OPEN NETWORK / YOUR {role.toUpperCase()} APP
         </p>
         {error && (
-          <p className="notice error" role="alert">
-            Offline or waking up. {error} Your saved rides stay protected.
-          </p>
+          <Notice warning>Offline or waking up. {error} Your saved rides stay protected.</Notice>
         )}
-        {notice && (
-          <p className="notice" role="status">
-            {notice}
-          </p>
-        )}
+        {notice && <Notice>{notice}</Notice>}
         {children}
       </main>
       <footer>
@@ -248,20 +249,20 @@ export function RiderApp() {
             }}
           >
             <div className="map-mode">
-              <button
+              <Button
                 type="button"
                 aria-pressed={selecting === 'pickup'}
                 onClick={() => setSelecting('pickup')}
               >
                 SET PICKUP
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
                 aria-pressed={selecting === 'destination'}
                 onClick={() => setSelecting('destination')}
               >
                 SET DESTINATION
-              </button>
+              </Button>
             </div>
             <p className="map-caption">Tap the map to set your {selecting}.</p>
             <MapView
@@ -284,7 +285,7 @@ export function RiderApp() {
               }
             />
             {(pickupPoint || destinationPoint) && (
-              <button
+              <Button
                 className="text-button"
                 type="button"
                 onClick={() => {
@@ -295,7 +296,7 @@ export function RiderApp() {
                 }}
               >
                 Clear map pins
-              </button>
+              </Button>
             )}
             <label>
               PICKUP
@@ -333,9 +334,9 @@ export function RiderApp() {
                 {quote ? money(quote.price.fareMinor, quote.price.currency) : 'GET A QUOTE'}
               </strong>
             </div>
-            <button disabled={busy || !data || !!error || incompletePins}>
+            <Button type="submit" disabled={busy || !data || !!error || incompletePins}>
               {busy ? 'PLEASE WAIT…' : quote ? 'LET’S GO ↗' : 'GET MY PRICE ↗'}
-            </button>
+            </Button>
             <small>
               {incompletePins
                 ? 'Set both pins, or clear them to enter text-only stops.'
@@ -346,9 +347,9 @@ export function RiderApp() {
         <section>
           <div className="section-heading">
             <p className="section-label">02 / YOUR JOURNEYS</p>
-            <button className="text-button" onClick={refresh}>
+            <Button className="text-button" onClick={refresh}>
               Refresh ↻
-            </button>
+            </Button>
           </div>
           {!data?.requests.length && (
             <div className="empty">
@@ -358,30 +359,22 @@ export function RiderApp() {
             </div>
           )}
           {data?.providers.some((provider) => !provider.available) && (
-            <p className="notice error">
+            <Notice warning>
               A provider is offline. Its journeys will reappear when it reconnects.
-            </p>
+            </Notice>
           )}
           {data?.requests.map((ride) => (
-            <article className="journey" key={ride.id}>
-              <div className="card-top">
-                <span className="badge">{STATUS[ride.status]}</span>
-                <span>{ride.providerName}</span>
-              </div>
-              <h2>
-                {ride.pickup}
-                <span className="to">↓</span>
-                {ride.destination}
-              </h2>
-              <div className="card-bottom">
-                <strong>{money(ride.fareMinor, ride.currency)}</strong>
-                <span>
-                  {ride.status === 'completed'
-                    ? 'Thanks for riding.'
-                    : 'Live updates every 2 seconds'}
-                </span>
-              </div>
-            </article>
+            <JourneyCard
+              key={ride.id}
+              badge={STATUS[ride.status]}
+              detail={ride.providerName}
+              pickup={ride.pickup}
+              destination={ride.destination}
+              amount={money(ride.fareMinor, ride.currency)}
+              note={
+                ride.status === 'completed' ? 'Thanks for riding.' : 'Live updates every 2 seconds'
+              }
+            />
           ))}
         </section>
       </div>

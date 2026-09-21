@@ -3,5 +3,6 @@ packages:
   - openride-app-backend
   - mockride-rider-frontend
   - mockride-driver-frontend
+  - openride-design-system/mockride
 allowBuilds:
   esbuild: true

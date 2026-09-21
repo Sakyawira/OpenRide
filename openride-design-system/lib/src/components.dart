@@ -25,9 +25,9 @@ class OpenRideOfferCard extends StatelessWidget {
               ),
               Text(
                 '${offer.pickupMinutes} min to pickup',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
-                  color: OpenRideColors.muted,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
             ],
@@ -36,12 +36,12 @@ class OpenRideOfferCard extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Column(
+              Column(
                 children: [
                   Icon(
                     Icons.radio_button_checked,
                     size: 17,
-                    color: OpenRideColors.navy,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                   SizedBox(height: 7),
                   SizedBox(height: 16, child: VerticalDivider(width: 17)),
@@ -49,7 +49,7 @@ class OpenRideOfferCard extends StatelessWidget {
                   Icon(
                     Icons.location_on_outlined,
                     size: 19,
-                    color: OpenRideColors.navy,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ],
               ),
@@ -60,7 +60,7 @@ class OpenRideOfferCard extends StatelessWidget {
                   children: [
                     Text(
                       offer.pickup,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
                       ),
@@ -68,7 +68,7 @@ class OpenRideOfferCard extends StatelessWidget {
                     const SizedBox(height: 24),
                     Text(
                       offer.destination,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
                       ),
@@ -81,7 +81,9 @@ class OpenRideOfferCard extends StatelessWidget {
           const SizedBox(height: 20),
           Text(
             '${offer.tripMinutes} min trip  ·  ${offer.distanceKm.toStringAsFixed(1)} km',
-            style: const TextStyle(color: OpenRideColors.muted),
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
           const SizedBox(height: 20),
           const Divider(height: 1),
@@ -96,15 +98,18 @@ class OpenRideOfferCard extends StatelessWidget {
                 children: [
                   Text(
                     offer.payout,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 25,
                       fontWeight: FontWeight.w800,
                       letterSpacing: -0.5,
                     ),
                   ),
-                  const Text(
+                  Text(
                     'Driver payout',
-                    style: TextStyle(fontSize: 12, color: OpenRideColors.muted),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ],
               ),
@@ -130,13 +135,15 @@ class OpenRideBadge extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
     decoration: BoxDecoration(
-      color: muted ? OpenRideColors.subtle : OpenRideColors.mist,
+      color: muted
+          ? Theme.of(context).colorScheme.surfaceContainerHighest
+          : Theme.of(context).colorScheme.primaryContainer,
       borderRadius: BorderRadius.circular(8),
     ),
     child: Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 15, color: OpenRideColors.navy),
+        Icon(icon, size: 15, color: Theme.of(context).colorScheme.onSurface),
         const SizedBox(width: 7),
         Flexible(
           child: Text(
@@ -144,7 +151,7 @@ class OpenRideBadge extends StatelessWidget {
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w700,
-              color: OpenRideColors.navy,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
         ),
@@ -169,14 +176,31 @@ class OpenRideNotice extends StatelessWidget {
     margin: const EdgeInsets.only(bottom: 16),
     padding: const EdgeInsets.all(16),
     decoration: BoxDecoration(
-      color: warning ? OpenRideColors.warning : OpenRideColors.mist,
+      color: warning
+          ? Theme.of(context).colorScheme.tertiaryContainer
+          : Theme.of(context).colorScheme.secondaryContainer,
       borderRadius: BorderRadius.circular(12),
     ),
     child: Row(
       children: [
-        Icon(warning ? Icons.wifi_off : Icons.info_outline, size: 20),
+        Icon(
+          warning ? Icons.wifi_off : Icons.info_outline,
+          size: 20,
+          color: warning
+              ? Theme.of(context).colorScheme.onTertiaryContainer
+              : Theme.of(context).colorScheme.onSecondaryContainer,
+        ),
         const SizedBox(width: 12),
-        Expanded(child: Text(text)),
+        Expanded(
+          child: Text(
+            text,
+            style: TextStyle(
+              color: warning
+                  ? Theme.of(context).colorScheme.onTertiaryContainer
+                  : Theme.of(context).colorScheme.onSecondaryContainer,
+            ),
+          ),
+        ),
         ?action,
       ],
     ),

@@ -11,10 +11,8 @@ class OpenRideApp extends StatelessWidget {
   final DriverController? controller;
 
   @override
-  Widget build(BuildContext context) => MaterialApp(
+  Widget build(BuildContext context) => OpenRideThemedApp(
     title: 'OpenRide',
-    debugShowCheckedModeBanner: false,
-    theme: openRideTheme(),
     home: DriverHome(controller: controller),
   );
 }
@@ -183,6 +181,7 @@ class _DriverHomeState extends State<DriverHome> {
                             ),
                           ),
                         const SizedBox(width: 16),
+                        const OpenRideThemeToggle(),
                         IconButton(
                           tooltip: 'Connection settings',
                           onPressed: driver.busy ? null : connection,
@@ -219,11 +218,11 @@ class _DriverHomeState extends State<DriverHome> {
                       ),
                     ),
                     const SizedBox(height: 14),
-                    const Text(
+                    Text(
                       'One view of your providers. One ride at a time.',
                       style: TextStyle(
                         fontSize: 16,
-                        color: OpenRideColors.muted,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
                     const SizedBox(height: 28),
@@ -266,11 +265,13 @@ class _DriverHomeState extends State<DriverHome> {
                       runSpacing: 8,
                       crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
-                        const Text(
+                        Text(
                           'Simulated rides in Auckland · No real dispatch or payments',
                           style: TextStyle(
                             fontSize: 12,
-                            color: OpenRideColors.muted,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
                           ),
                         ),
                         TextButton.icon(

@@ -31,45 +31,77 @@ class OpenRideLogo extends StatelessWidget {
   );
 }
 
-ThemeData openRideTheme() => ThemeData(
-  useMaterial3: true,
-  colorScheme: const ColorScheme.light(
-    primary: OpenRideColors.navy,
-    onPrimary: Colors.white,
-    primaryContainer: OpenRideColors.mist,
-    onPrimaryContainer: OpenRideColors.navy,
-    secondary: OpenRideColors.aqua,
-    onSecondary: OpenRideColors.deepNavy,
-    secondaryContainer: OpenRideColors.mist,
-    onSecondaryContainer: OpenRideColors.navy,
-    tertiary: OpenRideColors.navy,
-    onTertiary: Colors.white,
-    surface: Colors.white,
-    onSurface: OpenRideColors.navy,
-    onSurfaceVariant: OpenRideColors.muted,
-    surfaceContainerHighest: OpenRideColors.subtle,
-    outline: OpenRideColors.muted,
-    outlineVariant: OpenRideColors.border,
-  ),
-  scaffoldBackgroundColor: OpenRideColors.canvas,
-  textTheme: ThemeData.light().textTheme.apply(
-    bodyColor: OpenRideColors.navy,
-    displayColor: OpenRideColors.navy,
-  ),
-  filledButtonTheme: FilledButtonThemeData(
-    style: FilledButton.styleFrom(
-      padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 18),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+/// Semantic colours shared by the apps and component catalogue.
+ThemeData openRideTheme({Brightness brightness = Brightness.light}) {
+  final dark = brightness == Brightness.dark;
+  final scheme = dark
+      ? const ColorScheme.dark(
+          primary: OpenRideColors.aqua,
+          onPrimary: OpenRideColors.deepNavy,
+          primaryContainer: OpenRideColors.navy,
+          onPrimaryContainer: OpenRideColors.mist,
+          secondary: OpenRideColors.aqua,
+          onSecondary: OpenRideColors.deepNavy,
+          secondaryContainer: Color(0xFF173E4D),
+          onSecondaryContainer: OpenRideColors.mist,
+          tertiaryContainer: Color(0xFF49351C),
+          onTertiaryContainer: Color(0xFFFFE3AE),
+          surface: Color(0xFF102E3F),
+          onSurface: Color(0xFFE4F5F8),
+          onSurfaceVariant: Color(0xFFA9C5D0),
+          surfaceContainerHighest: Color(0xFF1B3D50),
+          outline: Color(0xFF799CAB),
+          outlineVariant: OpenRideColors.darkBorder,
+          error: Color(0xFFFFB4AB),
+          onError: Color(0xFF690005),
+          errorContainer: Color(0xFF662723),
+          onErrorContainer: Color(0xFFFFDAD6),
+        )
+      : const ColorScheme.light(
+          primary: OpenRideColors.navy,
+          onPrimary: Colors.white,
+          primaryContainer: OpenRideColors.mist,
+          onPrimaryContainer: OpenRideColors.navy,
+          secondary: OpenRideColors.aqua,
+          onSecondary: OpenRideColors.deepNavy,
+          secondaryContainer: OpenRideColors.mist,
+          onSecondaryContainer: OpenRideColors.navy,
+          tertiaryContainer: OpenRideColors.warning,
+          onTertiaryContainer: OpenRideColors.deepNavy,
+          surface: Colors.white,
+          onSurface: OpenRideColors.navy,
+          onSurfaceVariant: OpenRideColors.muted,
+          surfaceContainerHighest: OpenRideColors.subtle,
+          outline: OpenRideColors.muted,
+          outlineVariant: OpenRideColors.border,
+        );
+  return ThemeData(
+    useMaterial3: true,
+    brightness: brightness,
+    colorScheme: scheme,
+    scaffoldBackgroundColor: dark
+        ? const Color(0xFF081F2C)
+        : OpenRideColors.canvas,
+    textTheme: (dark ? ThemeData.dark() : ThemeData.light()).textTheme.apply(
+      bodyColor: scheme.onSurface,
+      displayColor: scheme.onSurface,
     ),
-  ),
-  cardTheme: CardThemeData(
-    elevation: 0,
-    color: Colors.white,
-    surfaceTintColor: Colors.transparent,
-    margin: EdgeInsets.zero,
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(20),
-      side: const BorderSide(color: OpenRideColors.border),
+    dividerColor: scheme.outlineVariant,
+    filledButtonTheme: FilledButtonThemeData(
+      style: FilledButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 18),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
     ),
-  ),
-);
+    cardTheme: CardThemeData(
+      elevation: 0,
+      color: scheme.surface,
+      surfaceTintColor: Colors.transparent,
+      margin: EdgeInsets.zero,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(color: scheme.outlineVariant),
+      ),
+    ),
+  );
+}

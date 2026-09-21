@@ -1,7 +1,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { OpenRideClient } from '@sakyawira/openride-protocol/client';
 import type { Booking, Offer, TripAction } from '@sakyawira/openride-protocol';
-import { MapView } from './MapView';
+import {
+  MapView,
+  ThemeToggle,
+  Notice,
+  Button,
+  Badge,
+  JourneyCard,
+  TripPanel,
+} from '@sakyawira/mockride-design-system';
 
 function message(error: unknown): string {
   return error instanceof Error
@@ -102,6 +110,7 @@ function Shell({ role, children, error, notice, settings, connect }: ShellProps)
           <span className="mark">M↗</span> MOCKRIDE<span className="role">{role}</span>
         </a>
         <nav>
+          <ThemeToggle />
           <a href={role === 'rider' ? '/mockride/driver/' : '/mockride/rider/'}>
             Open {role === 'rider' ? 'driver' : 'rider'} app ↗
           </a>
@@ -132,7 +141,7 @@ function Shell({ role, children, error, notice, settings, connect }: ShellProps)
             {role} token
             <input name="token" defaultValue={settings.token} required />
           </label>
-          <button>Connect</button>
+          <Button type="submit">Connect</Button>
           {connectionError && <p role="alert">{connectionError}</p>}
         </form>
       </details>
@@ -142,15 +151,9 @@ function Shell({ role, children, error, notice, settings, connect }: ShellProps)
           THE OPEN NETWORK / YOUR {role.toUpperCase()} APP
         </p>
         {error && (
-          <p className="notice error" role="alert">
-            Offline or waking up. {error} Your saved rides stay protected.
-          </p>
+          <Notice warning>Offline or waking up. {error} Your saved rides stay protected.</Notice>
         )}
-        {notice && (
-          <p className="notice" role="status">
-            {notice}
-          </p>
-        )}
+        {notice && <Notice>{notice}</Notice>}
         {children}
       </main>
       <footer>
@@ -221,14 +224,14 @@ export function DriverApp() {
         <section>
           <div className="section-heading">
             <p className="section-label">01 / AVAILABLE RIDES</p>
-            <button className="text-button" onClick={refresh}>
+            <Button className="text-button" onClick={refresh}>
               Refresh ↻
-            </button>
+            </Button>
           </div>
           {data?.providers.some((provider) => !provider.available) && (
-            <p className="notice error">
+            <Notice warning>
               One provider is offline. Your current booking remains protected.
-            </p>
+            </Notice>
           )}
           {!data?.offers.length && (
             <div className="empty">
@@ -237,36 +240,32 @@ export function DriverApp() {
             </div>
           )}
           {data?.offers.map((offer) => (
-            <article className="journey" key={offer.id}>
-              <div className="card-top">
-                <span className="badge">{offer.providerName}</span>
-                <span>{offer.pickupMinutes} min to pickup</span>
-              </div>
-              <h2>
-                {offer.pickup}
-                <span className="to">↓</span>
-                {offer.destination}
-              </h2>
-              <div className="card-bottom">
-                <strong>{money(offer.payoutMinor, offer.currency)}</strong>
-                <span>
-                  {offer.distanceKm} km · {offer.tripMinutes} min
-                </span>
-              </div>
-              <button
-                disabled={busy || !!booking || !!error || Date.parse(offer.expiresAt) <= Date.now()}
-                onClick={() => accept(offer)}
-              >
-                ACCEPT RIDE ↗
-              </button>
-            </article>
+            <JourneyCard
+              key={offer.id}
+              badge={offer.providerName}
+              detail={`${offer.pickupMinutes} min to pickup`}
+              pickup={offer.pickup}
+              destination={offer.destination}
+              amount={money(offer.payoutMinor, offer.currency)}
+              note={`${offer.distanceKm} km · ${offer.tripMinutes} min`}
+              action={
+                <Button
+                  disabled={
+                    busy || !!booking || !!error || Date.parse(offer.expiresAt) <= Date.now()
+                  }
+                  onClick={() => accept(offer)}
+                >
+                  ACCEPT RIDE ↗
+                </Button>
+              }
+            />
           ))}
         </section>
-        <aside className="trip-panel">
+        <TripPanel>
           <p className="section-label">02 / YOUR AVAILABILITY</p>
           {booking ? (
             <>
-              <span className="badge">{booking.state.replaceAll('_', ' ').toUpperCase()}</span>
+              <Badge>{booking.state.replaceAll('_', ' ').toUpperCase()}</Badge>
               <h2>
                 {booking.offer.pickup}
                 <span className="to">↓</span>
@@ -278,27 +277,27 @@ export function DriverApp() {
               </strong>
               {booking.state === 'confirmed' && (
                 <>
-                  <button disabled={busy || !!error} onClick={() => action(booking, 'start')}>
+                  <Button disabled={busy || !!error} onClick={() => action(booking, 'start')}>
                     START TRIP ↗
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     className="secondary"
                     disabled={busy || !!error}
                     onClick={() => action(booking, 'cancel')}
                   >
                     Cancel ride
-                  </button>
+                  </Button>
                 </>
               )}
               {booking.state === 'in_progress' && (
-                <button disabled={busy || !!error} onClick={() => action(booking, 'complete')}>
+                <Button disabled={busy || !!error} onClick={() => action(booking, 'complete')}>
                   COMPLETE TRIP ✓
-                </button>
+                </Button>
               )}
               {['preparing', 'resolving'].includes(booking.state) && (
                 <>
                   <p>Your reservation stays protected while the provider confirms.</p>
-                  <button
+                  <Button
                     disabled={busy || !!error}
                     onClick={() =>
                       command(async () => {
@@ -307,7 +306,7 @@ export function DriverApp() {
                     }
                   >
                     CHECK STATUS ↻
-                  </button>
+                  </Button>
                 </>
               )}
             </>
@@ -332,7 +331,7 @@ export function DriverApp() {
             <p className="map-caption">Pins appear for rides selected on the map.</p>
           )}
           <p className="trip-note">ONE DRIVER. ONE ACTIVE TRIP.</p>
-        </aside>
+        </TripPanel>
       </div>
     </Shell>
   );

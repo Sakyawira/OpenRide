@@ -1,6 +1,6 @@
 # OpenStreetMap integration
 
-All four frontends display OpenStreetMap raster tiles. OpenRide uses the reusable `OpenRideMap` Flutter component in `openride-design-system`, powered by flutter_map. Each independent MockRide app uses a small Leaflet adapter. Map libraries stay outside the protocol and backend.
+All four frontends display OpenStreetMap raster tiles. OpenRide uses the reusable `OpenRideMap` Flutter component in `openride-design-system`, powered by flutter_map. Both independent MockRide apps import the shared Leaflet component from `openride-design-system/mockride`. Map libraries stay outside the protocol and backend.
 
 Riders select **pickup** and **destination** by tapping the map. Both pins are required when using map selection; clearing them permits text-only stops. A changed pin invalidates the displayed quote. Driver maps display the accepted ride's coordinates and fit the two stops. Map pins are manually chosen, not the device's GPS position.
 
@@ -19,7 +19,7 @@ Coordinates use WGS84 decimal degrees, with latitude in [-90, 90] and longitude 
 
 ## App styling
 
-The map presentation follows each app's brand. OpenRide applies a navy-to-pale-blue tonal filter to the raster tile layer, with navy pickup pins, aqua destination pins and rounded controls. MockRide uses a warm monochrome tile layer, charcoal/yellow pins and its existing outlined controls. Marker shapes and letters distinguish the two stops as well as colour.
+The map presentation follows each app's brand. OpenRide applies a navy-to-pale-blue tonal filter to the raster tile layer, with navy pickup pins, aqua destination pins and rounded controls. MockRide uses a warm monochrome tile layer, charcoal/yellow pins and its existing outlined controls. Marker shapes and letters distinguish the two stops as well as colour. Both brands switch to dark tile tones with the app theme; map position and chosen pins are preserved.
 
 The filters affect only map tiles, preserving marker and attribution contrast. They reuse the existing tile source and cache. Raster filtering cannot remove baked-in labels or style individual roads independently; that requires a vector tile source and a layer style, such as the [MapLibre style specification](https://maplibre.org/maplibre-style-spec/layers/). No new map service, account or key is needed for the current styling.
 
