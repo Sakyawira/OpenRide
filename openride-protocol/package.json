@@ -1,0 +1,41 @@
+{
+  "name": "@sakyawira/openride-protocol",
+  "version": "0.1.0",
+  "description": "OpenRide interoperable ride-booking protocol contracts and schemas",
+  "license": "GPL-3.0-only",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./openapi.json": "./openapi.json"
+  },
+  "files": [
+    "dist",
+    "openapi.json",
+    "SPECIFICATION.md",
+    "README.md",
+    "COPYING"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "prepack": "pnpm build"
+  },
+  "dependencies": {
+    "zod": "^4.1.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/Sakyawira/OpenRide.git",
+    "directory": "openride-protocol"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  }
+}

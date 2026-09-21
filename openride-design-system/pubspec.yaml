@@ -1,0 +1,19 @@
+name: openride_design_system
+description: OpenRide styled Flutter components, brand assets, and design tokens.
+version: 0.1.0
+publish_to: none
+repository: https://github.com/Sakyawira/OpenRide
+environment:
+  sdk: ^3.12.2
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_svg: ^2.3.0
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/brand/logo.svg

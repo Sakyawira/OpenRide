@@ -1,0 +1,22 @@
+name: openride_widgetbook
+description: "Interactive OpenRide component catalogue."
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.12.2
+
+dependencies:
+  openride_design_system:
+    path: ../
+  widgetbook: ^3.25.0
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true

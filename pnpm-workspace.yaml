@@ -1,0 +1,5 @@
+packages:
+  - openride-protocol
+  - openride-app-backend
+allowBuilds:
+  esbuild: true

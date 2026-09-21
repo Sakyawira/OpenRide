@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" fill="none">
+    <rect x="0" y="0" width="256" height="256" rx="0" fill="#EFFFFF"/>
+    <g transform="translate(7.680000000000007 7.680000000000007) scale(0.94)">
+  <title>OpenRide</title>
+  <desc>A navy outlined globe and location pin with aqua highlights, redrawn from the original OpenRide logo.</desc>
+  <defs>
+    <linearGradient id="aqua" x1="67" y1="27" x2="175" y2="219" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#CFFFFF"/>
+      <stop offset="0.5" stop-color="#A3FCFC"/>
+      <stop offset="1" stop-color="#80FAF5"/>
+    </linearGradient>
+    <linearGradient id="light" x1="113" y1="94" x2="169" y2="163" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#80FAF5"/>
+    </linearGradient>
+  </defs>
+  <path d="M31 111C29 58 73 15 126 15C175 14 216 48 225 95H198C180 96 177 116 195 123C218 118 225 116 225 123C219 172 175 210 129 242C88 210 39 171 34 132H61L31 111Z" fill="url(#aqua)"/>
+  <path d="M41 112C38 60 79 24 127 24C173 24 205 53 216 89" stroke="#CFFFFF" stroke-width="5" stroke-linecap="round"/>
+  <path d="M48 117C44 64 87 24 144 33L143 44C170 49 190 69 198 95C180 96 177 116 195 123C173 109 156 112 137 113L103 115C89 116 72 113 63 105L61 132H34L31 111L48 117Z" fill="#FFFFFF"/>
+  <path d="M103 115C118 115 137 112 154 113C180 113 196 124 193 141C190 167 160 181 130 180V164C130 151 123 145 112 144C86 143 77 144 61 132L64 106C74 112 90 115 103 115Z" fill="url(#light)"/>
+  <path d="M88 74C90 57 109 45 128 47V74C128 86 123 91 113 93C107 94 103 98 103 100C91 96 84 86 88 74Z" fill="#CFFFFF"/>
+  <path d="M88 74C90 57 109 45 126 47V66C126 76 122 80 115 80C106 80 103 85 104 95C94 91 86 85 88 74Z" fill="#FFFFFF"/>
+  <path d="M137 58C143 59 147 61 150 68L156 79L137 86V58Z" fill="#CFFFFF"/>
+  <path d="M43 141C64 194 97 215 129 234C172 199 207 167 215 129" stroke="#CFFFFF" stroke-width="5" stroke-linecap="round"/>
+  <g stroke="#19425E" stroke-width="7.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M31 111C29 58 73 15 126 15C175 14 216 48 225 95H198C180 96 177 116 195 123"/>
+    <path d="M225 123C219 172 175 210 129 242C88 210 39 171 34 132H61"/>
+    <path d="M48 117C44 64 87 24 144 33"/>
+    <path d="M63 117C62 97 68 79 77 66L88 74"/>
+    <path d="M104 100C91 96 84 87 88 73C92 57 109 45 128 47V75C128 86 122 91 113 93C105 94 101 104 103 114"/>
+    <path d="M140 52C147 53 151 57 153 62"/>
+    <path d="M143 44C169 49 191 70 198 95"/>
+    <path d="M180 65C167 76 155 82 139 86"/>
+    <path d="M65 105C83 116 102 115 126 114L151 113C178 112 196 124 193 141C189 167 161 181 130 180C97 179 72 163 64 138"/>
+    <path d="M61 132C79 146 96 142 113 144C125 145 129 153 129 165V180"/>
+    <path d="M175 165C173 158 170 152 166 149"/>
+  </g>
+
+</g>
+  </svg>

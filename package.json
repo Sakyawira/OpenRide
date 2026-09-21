@@ -1,0 +1,41 @@
+{
+  "name": "openride",
+  "private": true,
+  "version": "0.1.0",
+  "license": "GPL-3.0-only",
+  "type": "module",
+  "packageManager": "pnpm@11.10.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "pnpm build:protocol && tsx scripts/dev.ts",
+    "coordinator": "tsx openride-app-backend/src/main.ts",
+    "provider": "tsx openride-app-backend/src/provider-main.ts",
+    "check": "pnpm build:protocol && tsc --noEmit && eslint . && prettier --check .",
+    "format": "prettier --write .",
+    "test": "pnpm build:protocol && tsx --test --test-concurrency=1 openride-app-backend/test/*.test.ts",
+    "demo:race": "tsx scripts/race.ts",
+    "protocol:generate": "pnpm build:protocol && node --import tsx scripts/generate-protocol.ts",
+    "brand:generate": "node scripts/generate-branding.mjs",
+    "build:protocol": "pnpm --filter @sakyawira/openride-protocol build",
+    "design:serve": "node --import tsx scripts/serve-design-system.ts"
+  },
+  "dependencies": {
+    "@electric-sql/pglite": "^0.3.14",
+    "@fastify/static": "^8.2.0",
+    "fastify": "^5.6.0",
+    "zod": "^4.1.0",
+    "@sakyawira/openride-protocol": "workspace:*"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.0",
+    "@types/node": "^22.19.0",
+    "eslint": "^9.39.0",
+    "prettier": "^3.7.0",
+    "sharp": "^0.35.4",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.0",
+    "typescript-eslint": "^8.48.0"
+  }
+}

@@ -1,0 +1,45 @@
+name: Check
+on: [push, pull_request]
+jobs:
+  coordinator:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.10.0
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check
+      - run: pnpm test
+      - run: pnpm --dir openride-protocol pack --out /tmp/openride-protocol.tgz
+      - run: pnpm protocol:generate && pnpm exec prettier --write openride-protocol/openapi.json && git diff --exit-code openride-protocol/openapi.json
+  flutter:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.6'
+          channel: stable
+          cache: true
+      - working-directory: openride-app-frontend
+        run: |
+          flutter pub get
+          dart format --output=none --set-exit-if-changed lib test
+          flutter analyze
+          flutter test
+          flutter build web --no-web-resources-cdn
+      - working-directory: openride-design-system
+        run: |
+          flutter pub get
+          dart format --output=none --set-exit-if-changed lib
+          flutter analyze lib
+      - working-directory: openride-design-system/catalog
+        run: |
+          flutter pub get
+          dart format --output=none --set-exit-if-changed lib
+          flutter analyze
+          flutter build web --no-web-resources-cdn
