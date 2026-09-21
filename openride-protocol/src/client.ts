@@ -30,7 +30,7 @@ export class OpenRideClient {
   constructor(
     readonly baseUrl: string,
     private readonly token: string,
-    private readonly transport: typeof fetch = fetch
+    private readonly transport: typeof fetch = globalThis.fetch.bind(globalThis)
   ) {}
 
   private async request(path: string, body?: unknown, key?: string): Promise<unknown> {
