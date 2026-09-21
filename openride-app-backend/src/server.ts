@@ -1,6 +1,7 @@
 import { existsSync } from 'node:fs';
 import Fastify, { type FastifyInstance } from 'fastify';
 import fastifyStatic from '@fastify/static';
+import fastifyCors from '@fastify/cors';
 import { z } from 'zod';
 import {
   ACCEPT_SCHEMA,
@@ -26,6 +27,7 @@ function baseServer(authenticator: DriverAuthenticator): FastifyInstance {
   const app = Fastify({ logger: false, bodyLimit: 16_384 });
   app.decorateRequest('principalId', '');
   app.addHook('onRequest', async (request) => {
+    if (request.method === 'OPTIONS') return;
     const path = request.url.split('?')[0] ?? '';
     if (!path.startsWith('/v0.1/') && !path.startsWith('/demo/')) return;
     request.principalId = await authenticator.authenticate(request.headers.authorization);
@@ -62,9 +64,17 @@ export async function coordinatorServer(
   coordinator: Coordinator,
   authenticator: DriverAuthenticator,
   webRoot?: string,
-  seeders: DemoOfferSeeder[] = []
+  seeders: DemoOfferSeeder[] = [],
+  allowedOrigins: string[] = []
 ): Promise<FastifyInstance> {
   const app = baseServer(authenticator);
+  if (allowedOrigins.length) {
+    await app.register(fastifyCors, {
+      origin: allowedOrigins,
+      allowedHeaders: ['Content-Type', 'Authorization', 'Idempotency-Key'],
+      methods: ['GET', 'POST', 'OPTIONS'],
+    });
+  }
   app.get('/v0.1/snapshot', async (request) => ({
     protocolVersion: PROTOCOL_VERSION,
     ...(await coordinator.snapshot(request.principalId)),

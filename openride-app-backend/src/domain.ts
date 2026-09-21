@@ -1,10 +1,17 @@
-import type { Booking, ProviderAction } from '@sakyawira/openride-protocol';
+import type {
+  Booking,
+  PrepareRequest,
+  ProviderAction,
+  ProviderReservation,
+} from '@sakyawira/openride-protocol';
 
 export interface BookingRecord extends Booking {
   idempotencyKey: string;
   token: string;
   pendingAction: 'prepare' | ProviderAction | null;
 }
+
+export interface ReservationRecord extends PrepareRequest, ProviderReservation {}
 
 export function publicBooking(record: BookingRecord): Booking {
   return {

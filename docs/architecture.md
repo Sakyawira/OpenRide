@@ -13,6 +13,8 @@ Backend → protocol is a pnpm workspace dependency. Frontend → design system 
 
 ## Few servers first
 
+The current proof of concept also supports one free Render service with both simulated providers embedded and MongoDB holding all durable state. See [storage conformance](storage-conformance.md). Cold starts are accepted for this toy; the following pilot guidance applies only if it grows into a real service.
+
 Recommendation: start a pilot with one small OpenRide coordinator deployment and a transactional server database. Participating providers expose their own endpoints. The two local simulator processes represent external providers, not two additional OpenRide production services. Avoid separate brokers, microservices and distributed storage until a measured need justifies them. PGlite is the local development adapter, not the production database recommendation.
 
 Offer discovery, cached profiles, tutorial progress and noncritical updates are candidates for local-first replication or peer exchange. Booking ownership needs an atomic claim: two disconnected writers must not each confirm the same driver. A future distributed database must provide consensus-backed arbitration or a single fenced owner per driver. A last-writer-wins merge cannot undo two real rides already confirmed.
@@ -25,7 +27,7 @@ Offer discovery, cached profiles, tutorial progress and noncritical updates are 
 - `RecoveryScheduler`: reconciliation triggers only; pending commands live durably in the repository.
 - `DemoOfferSeeder`: fixture capability outside the interoperable protocol.
 
-`main.ts` selects current adapters. The coordinator imports no database or HTTP client implementation. The PGlite adapter uses transactions and database uniqueness; future server adapters need migrations, backups and explicit ownership/fencing. PostgreSQL documents its [transaction isolation and retry requirements](https://www.postgresql.org/docs/current/transaction-iso.html).
+`main.ts` and `storage.ts` select the current PGlite or MongoDB adapters. `ProviderRepository` now also separates provider storage from the shared provider state machine. The coordinator imports no database or HTTP client implementation. The PGlite adapter uses transactions and database uniqueness; future server adapters need migrations, backups and explicit ownership/fencing. PostgreSQL documents its [transaction isolation and retry requirements](https://www.postgresql.org/docs/current/transaction-iso.html).
 
 ## P2P experiment
 

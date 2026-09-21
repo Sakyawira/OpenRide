@@ -1,18 +1,21 @@
 import { StaticBearerAuthenticator } from './authentication';
 import { IntervalRecoveryScheduler } from './recovery-scheduler';
 import { DRIVER_ID } from './fixtures';
-import { mkdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { BookingStore } from './store';
 import { Coordinator } from './coordinator';
 import { HttpProvider } from './http-provider';
 import { coordinatorServer } from './server';
+import { startDemoNetwork } from './demo-network';
+import { openBookingRepository, storageConfig } from './storage';
 
-const DATA_ROOT = resolve(process.env.DATA_ROOT ?? '.data');
-await mkdir(DATA_ROOT, { recursive: true });
-const STORE = await BookingStore.open(resolve(DATA_ROOT, 'coordinator'));
+const CONFIG = storageConfig();
+const STORE = await openBookingRepository(CONFIG);
 const PROVIDER_TOKEN = process.env.PROVIDER_TOKEN ?? 'openride-demo-provider';
-const PROVIDERS = [
+const NETWORK =
+  process.env.DEMO_PROVIDERS === 'embedded'
+    ? await startDemoNetwork(CONFIG, PROVIDER_TOKEN)
+    : undefined;
+const PROVIDERS = NETWORK?.adapters ?? [
   new HttpProvider(
     'harbour',
     'Harbour Cooperative',
@@ -31,7 +34,11 @@ const APP = await coordinatorServer(
   COORDINATOR,
   new StaticBearerAuthenticator(process.env.DRIVER_TOKEN ?? 'openride-demo-driver', DRIVER_ID),
   resolve('openride-app-frontend/build/web'),
-  PROVIDERS
+  PROVIDERS,
+  (process.env.CORS_ORIGINS ?? '')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean)
 );
 const ADDRESS = await APP.listen({
   port: Number(process.env.PORT ?? 4100),
@@ -49,6 +56,7 @@ async function shutdown(): Promise<void> {
   await SCHEDULER.stop();
   await APP.close();
   await COORDINATOR.idle();
+  await NETWORK?.close();
   await STORE.close();
 }
 process.on('SIGINT', shutdown);

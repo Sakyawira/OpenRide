@@ -5,7 +5,7 @@ import type {
   ProviderReservation,
   ProtocolEvent,
 } from '@sakyawira/openride-protocol';
-import type { BookingRecord } from './domain';
+import type { BookingRecord, ReservationRecord } from './domain';
 
 export interface ProviderAdapter {
   id: string;
@@ -34,6 +34,25 @@ export interface BookingRepository {
   active(driverId: string): Promise<BookingRecord | undefined>;
   pending(): Promise<BookingRecord[]>;
   events(driverId: string, after?: number): Promise<ProtocolEvent[]>;
+  close(): Promise<void>;
+}
+
+/** Independent provider persistence. Claims must be atomic across all writers.
+ * One non-cancelled assignment per offer, and one active reservation per driver.
+ * Existing booking IDs return the original record, even after completion/cancellation.
+ * Mutation callbacks are pure and may be retried by a transactional adapter.
+ */
+export interface ProviderRepository {
+  availableOffers(now: Date): Promise<Offer[]>;
+  getOffer(id: string): Promise<Offer | undefined>;
+  getReservation(id: string): Promise<ReservationRecord | undefined>;
+  claimReservation(record: ReservationRecord): Promise<ReservationRecord>;
+  changeReservation(
+    id: string,
+    change: (record: ReservationRecord) => ReservationRecord
+  ): Promise<ReservationRecord>;
+  addOffers(offers: Offer[]): Promise<void>;
+  hasOffers(): Promise<boolean>;
   close(): Promise<void>;
 }
 

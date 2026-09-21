@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: openride-demo
+    runtime: node
+    plan: free
+    branch: feat
+    autoDeployTrigger: checksPass
+    buildCommand: pnpm install --frozen-lockfile --prod=false && pnpm build:protocol
+    startCommand: pnpm demo:hosted
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: 22.22.0
+      - key: NODE_ENV
+        value: production
+      - key: HOST
+        value: 0.0.0.0
+      - key: STORAGE_ADAPTER
+        value: mongodb
+      - key: MONGODB_URI
+        sync: false
+      - key: MONGODB_DATABASE
+        value: openride_demo
+      - key: DRIVER_TOKEN
+        value: openride-demo-driver
+      - key: PROVIDER_TOKEN
+        generateValue: true
+      - key: CORS_ORIGINS
+        sync: false

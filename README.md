@@ -15,7 +15,7 @@ The mission is to give drivers more choice and build a community-led alternative
 | [openride-app-backend](openride-app-backend/README.md)     | Coordinator, interfaces and infrastructure adapters      |
 | [openride-design-system](openride-design-system/README.md) | Styled Flutter components, branding and Widgetbook       |
 
-See [architecture decisions](docs/architecture.md) for the minimal-server approach and future distributed/P2P experiments.
+See [database adapters and free Render setup](docs/storage-conformance.md), and [architecture decisions](docs/architecture.md) for the minimal-server approach and future distributed/P2P experiments.
 
 ## What runs today
 
@@ -64,7 +64,7 @@ On a trusted local Wi-Fi network, start the coordinator with LAN access:
 HOST=0.0.0.0 pnpm dev
 ```
 
-Open `http://YOUR_MAC_LAN_IP:4100` in the phone browser. The same Flutter web build runs on both devices and both use the same demo driver, so accepting on either reserves that driver everywhere. The server defaults to loopback; this command deliberately exposes the development driver API on your LAN. The fixture token `openride-demo-driver` is public and gives control of that demo driver. Do not expose this server to the internet.
+Open `http://YOUR_MAC_LAN_IP:4100` in the phone browser. The same Flutter web build runs on both devices and both use the same demo driver, so accepting on either reserves that driver everywhere. The server defaults to loopback; this command deliberately exposes the development driver API on your LAN. The fixture token `openride-demo-driver` is public and gives control of that demo driver. The free Render configuration deliberately hosts this synthetic simulation; see the deployment guide before exposing it.
 
 ### Native Flutter targets
 

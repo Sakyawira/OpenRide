@@ -125,10 +125,14 @@ export class Coordinator {
             502
           );
         record = await this.store.change(id, (previous) =>
-          action === 'prepare'
-            ? // Commit intent is durable BEFORE sending the external commit command.
-              { ...previous, pendingAction: 'commit', state: 'preparing', lastError: null }
-            : { ...previous, pendingAction: null, state: expected[action], lastError: null }
+          // Another worker may have already advanced this booking. A delayed
+          // acknowledgement must never restore an older state or pending command.
+          previous.version !== record.version
+            ? previous
+            : action === 'prepare'
+              ? // Commit intent is durable BEFORE sending the external commit command.
+                { ...previous, pendingAction: 'commit', state: 'preparing', lastError: null }
+              : { ...previous, pendingAction: null, state: expected[action], lastError: null }
         );
       } catch (error) {
         // Only a definitive prepare rejection proves no reservation exists. An
@@ -142,6 +146,7 @@ export class Coordinator {
             ? error.message
             : 'Waiting for the provider to confirm the outcome. Your driver reservation is protected.';
         record = await this.store.change(id, (previous) => {
+          if (previous.version !== record.version) return previous;
           const state = rejected ? 'rejected' : 'resolving';
           if (previous.state === state && previous.lastError === message) return previous;
           return {

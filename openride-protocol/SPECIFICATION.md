@@ -41,7 +41,7 @@ sequenceDiagram
   C-->>D: Confirmed booking
 ```
 
-Two simultaneous accepts contend on a partial unique index on coordinator `driver_id`. The loser receives `409 DRIVER_BUSY`. A separate provider constraint arbitrates two drivers accepting the same order.
+Two simultaneous accepts contend on an atomic coordinator driver claim. The PGlite and MongoDB reference adapters implement this with partial unique indexes. The loser receives `409 DRIVER_BUSY`. A separate provider constraint arbitrates two drivers accepting the same order.
 
 If any provider response is lost, the coordinator persists `resolving` and keeps the pending command. The worker retries every five seconds, including on restart. Manual reconciliation invokes the same operation. Providers return the saved result for repeated commands with the same booking identity and token.
 
@@ -112,6 +112,8 @@ The current implementation has a durable **event log**, no distributed event bus
 A future tutorial engine can translate app interactions and booking events into modal steps. Tutorial subscribers must be separate from reservation enforcement. A tutorial being dismissed, paused or replayed must never start, cancel or complete a real trip by itself.
 
 ## Reference implementation boundaries
+
+The reference supports PGlite and MongoDB behind the same repository interfaces. The conformance suite exercises both and both mixed coordinator/provider combinations, including real database rollback and HTTP interoperability. MongoDB requires a replica set for transactional booking/event writes; multiple clients can share the same authoritative database. This does not provide coordination between independent databases. See [storage conformance](../docs/storage-conformance.md).
 
 PGlite is used in single-process, persistent-directory mode. One process owns each participant's database. The demo is not horizontally scalable, has no cross-host consensus and does not implement database migrations beyond initial table creation. Its tests cover concurrent requests, provider order arbitration, duplicate keys, lost acknowledgements and reopening persisted coordinator state. They do not establish production fault tolerance under disk loss, partitions with split authority, malicious providers or arbitrary database corruption.
 
