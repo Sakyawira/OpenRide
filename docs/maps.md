@@ -17,6 +17,12 @@ The optional protocol field is:
 
 Coordinates use WGS84 decimal degrees, with latitude in [-90, 90] and longitude in [-180, 180]. Both points are required if `locations` is present. Quotes, rider requests and driver offers preserve the field. Changing a pin while reusing a saved request key is an idempotency conflict. Database adapters persist the same JSON contract; existing text-only offers remain valid.
 
+## App styling
+
+The map presentation follows each app's brand. OpenRide applies a navy-to-pale-blue tonal filter to the raster tile layer, with navy pickup pins, aqua destination pins and rounded controls. MockRide uses a warm monochrome tile layer, charcoal/yellow pins and its existing outlined controls. Marker shapes and letters distinguish the two stops as well as colour.
+
+The filters affect only map tiles, preserving marker and attribution contrast. They reuse the existing tile source and cache. Raster filtering cannot remove baked-in labels or style individual roads independently; that requires a vector tile source and a layer style, such as the [MapLibre style specification](https://maplibre.org/maplibre-style-spec/layers/). No new map service, account or key is needed for the current styling.
+
 ## Tiles and attribution
 
 The default source is `https://tile.openstreetmap.org/{z}/{x}/{y}.png`. Visible attribution links to OpenStreetMap copyright. Flutter native requests identify the app and use flutter_map's built-in HTTP-aware cache; browsers use their normal tile cache and Referer. Loading is limited to the viewed map; there is no bulk-download or offline-area feature. Widget tests disable network tiles with `OpenRideMapScope`.

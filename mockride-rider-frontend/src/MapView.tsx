@@ -61,7 +61,7 @@ export function MapView({ pickup, destination, onSelect }: MapViewProps) {
       const position: L.LatLngTuple = [point.latitude, point.longitude];
       points.push(position);
       L.marker(position, {
-        icon: L.divIcon({ className: `map-pin pin-${label}`, html: label, iconSize: [32, 32] }),
+        icon: L.divIcon({ className: `map-pin pin-${label}`, html: label, iconSize: [36, 36] }),
         title: label === 'P' ? 'Pickup' : 'Destination',
       }).addTo(group);
     }
@@ -77,7 +77,14 @@ export function MapView({ pickup, destination, onSelect }: MapViewProps) {
           onSelect ? 'Select pickup and destination on the map' : 'Pickup and destination map'
         }
       />
-      <p className="map-caption">P · Pickup &nbsp; D · Destination</p>
+      <div className="map-legend">
+        <span>
+          <b className="legend-pickup">P</b> Pickup
+        </span>
+        <span>
+          <b className="legend-destination">D</b> Destination
+        </span>
+      </div>
       {unavailable && (
         <p className="map-caption">Map tiles are unavailable. You can still enter your stops.</p>
       )}

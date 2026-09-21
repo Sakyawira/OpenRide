@@ -432,25 +432,35 @@ footer span {
 
 .map-wrap {
   margin: 18px 0;
+  border: 2px solid #202020;
+  border-radius: 6px;
+  background: #f4f2eb;
+  overflow: hidden;
+  box-shadow: 4px 4px 0 #f9d949;
 }
 .ride-map {
   height: 280px;
   width: 100%;
-  border: 1px solid #b9baae;
+  border: 0;
   z-index: 0;
+  background: #e6e4db;
 }
 .map-pin {
   display: grid;
   place-items: center;
-  background: #242522;
-  color: #fff;
-  border: 3px solid #fff;
+  background: #202020;
+  color: #f9d949;
+  border: 2px solid #202020;
   border-radius: 50%;
   font-weight: 800;
-  box-shadow: 0 2px 6px #0005;
+  font-family: monospace;
+  font-size: 15px;
+  box-shadow: 3px 3px 0 #20202033;
 }
 .pin-D {
-  background: #8b501e;
+  background: #f9d949;
+  color: #202020;
+  border-radius: 9px;
 }
 .map-caption {
   font-size: 12px;
@@ -472,10 +482,70 @@ footer span {
   border: 1px solid #bbb;
 }
 .ride-map .leaflet-control-attribution {
+  background: #f4f2ebee;
+  color: #55574d;
   font:
     11px/1.5 Arial,
     sans-serif;
 }
 .ride-map .leaflet-control-attribution a {
-  color: #145d83;
+  color: #202020;
+  text-decoration: underline;
+}
+
+/* Tone only the tile pane; pins, controls and attribution stay crisp. */
+.ride-map .leaflet-tile-pane {
+  filter: grayscale(1) sepia(0.16) contrast(0.9) brightness(1.03);
+}
+.ride-map .leaflet-control-zoom {
+  border: 2px solid #202020;
+  border-radius: 4px;
+  box-shadow: 3px 3px 0 #20202022;
+  overflow: hidden;
+}
+.ride-map .leaflet-control-zoom a {
+  background: #f4f2eb;
+  color: #202020;
+  width: 36px;
+  height: 36px;
+  line-height: 36px;
+  border-color: #202020;
+}
+.ride-map .leaflet-control-zoom a:hover {
+  background: #f9d949;
+}
+.map-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  padding: 10px 12px;
+  border-top: 1px solid #202020;
+  color: #202020;
+  font: 12px monospace;
+}
+.map-legend span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.map-legend b {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border: 1px solid #202020;
+  border-radius: 50%;
+  font-size: 11px;
+}
+.legend-pickup {
+  background: #202020;
+  color: #f9d949;
+}
+.map-legend .legend-destination {
+  background: #f9d949;
+  color: #202020;
+  border-radius: 5px;
+}
+.map-wrap > .map-caption {
+  padding: 0 12px 8px;
 }
