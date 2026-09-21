@@ -23,6 +23,12 @@ services:
         value: openride_demo
       - key: DRIVER_TOKEN
         value: openride-demo-driver
+      - key: RIDER_TOKEN
+        value: openride-demo-rider
+      - key: MOCK_DRIVER_TOKEN
+        value: mockride-demo-driver
+      - key: MOCK_RIDER_TOKEN
+        value: mockride-demo-rider
       - key: PROVIDER_TOKEN
         generateValue: true
       - key: CORS_ORIGINS

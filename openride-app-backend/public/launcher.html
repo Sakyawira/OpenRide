@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>OpenRide · Choose your app</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: #f2fcfd;
+        color: #19425e;
+        font-family: Arial, sans-serif;
+      }
+      main {
+        max-width: 1080px;
+        margin: auto;
+        padding: 64px 24px;
+      }
+      header {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+      img {
+        width: 60px;
+      }
+      h1 {
+        font-size: clamp(36px, 6vw, 62px);
+        letter-spacing: -2px;
+        max-width: 750px;
+        line-height: 1.05;
+        margin-top: 48px;
+      }
+      p {
+        line-height: 1.7;
+        max-width: 650px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 28px;
+        margin: 40px 0;
+      }
+      .card {
+        border: 1px solid #c0dce0;
+        padding: 32px;
+        background: white;
+        border-radius: 24px;
+      }
+      .mock {
+        background: #252525;
+        color: #fff7dd;
+        border-radius: 6px;
+      }
+      .label {
+        font: 12px monospace;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+      }
+      .buttons {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 28px;
+      }
+      a {
+        display: block;
+        padding: 16px 24px;
+        color: #19425e;
+        background: #80faf5;
+        text-decoration: none;
+        font-weight: bold;
+        border-radius: 10px;
+      }
+      a:focus-visible {
+        outline: 3px solid #806100;
+        outline-offset: 5px;
+      }
+      .mock a {
+        background: #f9d949;
+        color: #252525;
+        border-radius: 3px;
+      }
+      h2 {
+        font-size: 32px;
+        margin: 16px 0;
+      }
+      .steps {
+        padding: 24px;
+        border-top: 1px solid #c0dce0;
+      }
+      footer {
+        font-size: 12px;
+        color: #526f80;
+        margin-top: 32px;
+      }
+      @media (max-width: 700px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+        main {
+          padding-top: 32px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <img src="/logo.svg" alt="OpenRide logo" /><strong>OPENRIDE / THE DEMO NETWORK</strong>
+      </header>
+      <h1>Two brands.<br />One ride network.</h1>
+      <p>
+        Choose your stops on the map. Request a ride in one app. Accept it in the other. Follow the
+        same journey from either side of the network.
+      </p>
+      <div class="grid">
+        <section class="card">
+          <div class="label">The reference app · Flutter</div>
+          <h2>OpenRide</h2>
+          <p>The navy-and-aqua home for your next journey. Separate apps for riders and drivers.</p>
+          <div class="buttons">
+            <a href="/rider/" target="_blank" rel="noopener">Open rider ↗</a
+            ><a href="/" target="_blank" rel="noopener">Open driver ↗</a>
+          </div>
+        </section>
+        <section class="card mock">
+          <div class="label">An independent client · React</div>
+          <h2>MOCKRIDE ↗</h2>
+          <p>
+            A different look and a different implementation, connected through the OpenRide
+            protocol.
+          </p>
+          <div class="buttons">
+            <a href="/mockride/rider/" target="_blank" rel="noopener">Open rider ↗</a
+            ><a href="/mockride/driver/" target="_blank" rel="noopener">Open driver ↗</a>
+          </div>
+        </section>
+      </div>
+      <div class="steps">
+        <strong>Try it in either direction</strong>
+        <p>OpenRide rider → MockRide driver<br />MockRide rider → OpenRide driver</p>
+        <p>
+          Request a recognisable route, accept that offer in the other app, then start and complete
+          the trip. The rider’s journey updates automatically.
+        </p>
+      </div>
+      <footer>
+        Proof of concept · Public demo identities · Synthetic trips and fares · No real dispatch or
+        payments
+      </footer>
+    </main>
+  </body>
+</html>

@@ -5,16 +5,26 @@ import fastifyCors from '@fastify/cors';
 import { z } from 'zod';
 import {
   ACCEPT_SCHEMA,
+  CREATE_RIDE_SCHEMA,
+  QUOTE_INPUT_SCHEMA,
+  RIDE_INPUT_SCHEMA,
   ID_SCHEMA,
   PREPARE_SCHEMA,
   PROTOCOL_VERSION,
   PROVIDER_ACTION_SCHEMA,
+  PROVIDER_RIDE_INPUT_SCHEMA,
   ProtocolError,
   TRIP_ACTION_SCHEMA,
 } from '@sakyawira/openride-protocol';
 import { publicBooking } from './domain';
 import type { Coordinator } from './coordinator';
-import type { DriverAuthenticator, ProviderAdapter, DemoOfferSeeder } from './ports';
+import type {
+  ParticipantAuthenticator,
+  ProviderAdapter,
+  DemoOfferSeeder,
+  RiderProviderAdapter,
+} from './ports';
+import type { RiderService } from './rider-service';
 import { StaticBearerAuthenticator } from './authentication';
 
 declare module 'fastify' {
@@ -23,14 +33,20 @@ declare module 'fastify' {
   }
 }
 
-function baseServer(authenticator: DriverAuthenticator): FastifyInstance {
+function baseServer(
+  authenticator: ParticipantAuthenticator,
+  riderAuthenticator?: ParticipantAuthenticator
+): FastifyInstance {
   const app = Fastify({ logger: false, bodyLimit: 16_384 });
   app.decorateRequest('principalId', '');
   app.addHook('onRequest', async (request) => {
     if (request.method === 'OPTIONS') return;
     const path = request.url.split('?')[0] ?? '';
     if (!path.startsWith('/v0.1/') && !path.startsWith('/demo/')) return;
-    request.principalId = await authenticator.authenticate(request.headers.authorization);
+    const identity = path.startsWith('/v0.1/rider/') ? riderAuthenticator : authenticator;
+    if (!identity)
+      throw new ProtocolError('UNAUTHORIZED', 'Rider authentication is required.', 401);
+    request.principalId = await identity.authenticate(request.headers.authorization);
   });
   app.setErrorHandler((error, _request, reply) => {
     if (error instanceof ProtocolError)
@@ -62,12 +78,14 @@ function baseServer(authenticator: DriverAuthenticator): FastifyInstance {
 
 export async function coordinatorServer(
   coordinator: Coordinator,
-  authenticator: DriverAuthenticator,
+  authenticator: ParticipantAuthenticator,
   webRoot?: string,
   seeders: DemoOfferSeeder[] = [],
-  allowedOrigins: string[] = []
+  allowedOrigins: string[] = [],
+  rider?: { service: RiderService; authenticator: ParticipantAuthenticator },
+  webApps: { root: string; prefix: string }[] = []
 ): Promise<FastifyInstance> {
-  const app = baseServer(authenticator);
+  const app = baseServer(authenticator, rider?.authenticator);
   if (allowedOrigins.length) {
     await app.register(fastifyCors, {
       origin: allowedOrigins,
@@ -79,6 +97,28 @@ export async function coordinatorServer(
     protocolVersion: PROTOCOL_VERSION,
     ...(await coordinator.snapshot(request.principalId)),
   }));
+  if (rider) {
+    app.post('/v0.1/rider/quotes', async (request) =>
+      rider.service.quote(QUOTE_INPUT_SCHEMA.parse(request.body))
+    );
+    app.get('/v0.1/rider/snapshot', async (request) => ({
+      protocolVersion: PROTOCOL_VERSION,
+      ...(await rider.service.snapshot(request.principalId)),
+    }));
+    app.post('/v0.1/rider/requests', async (request) =>
+      rider.service.request(
+        request.principalId,
+        ID_SCHEMA.parse(request.headers['idempotency-key']),
+        CREATE_RIDE_SCHEMA.parse(request.body)
+      )
+    );
+    app.get('/v0.1/rider/requests/:providerId/:id', async (request) => {
+      const { providerId, id } = z
+        .object({ providerId: ID_SCHEMA, id: z.uuid() })
+        .parse(request.params);
+      return rider.service.ride(request.principalId, providerId, id);
+    });
+  }
   app.get('/v0.1/events', async (request) => {
     const { after } = z
       .object({ after: z.coerce.number().int().min(0).max(2_147_483_647).default(0) })
@@ -121,18 +161,39 @@ export async function coordinatorServer(
       reply
         .type('text/plain')
         .send(
-          'OpenRide coordinator is running. Build the driver app: cd openride-app-frontend && flutter build web'
+          'OpenRide coordinator is running. Build the driver app: cd openride-driver-frontend && flutter build web'
         )
     );
+  let decorated = !!webRoot && existsSync(webRoot);
+  for (const webApp of webApps) {
+    if (!existsSync(webApp.root)) continue;
+    await app.register(fastifyStatic, { ...webApp, decorateReply: !decorated });
+    decorated = true;
+  }
   return app;
 }
 
 export function providerServer(
-  provider: ProviderAdapter & DemoOfferSeeder,
+  provider: ProviderAdapter & DemoOfferSeeder & RiderProviderAdapter,
   token: string
 ): FastifyInstance {
   const app = baseServer(new StaticBearerAuthenticator(token, 'coordinator'));
+  app.post('/v0.1/ride-quotes', async (request) =>
+    provider.quote(RIDE_INPUT_SCHEMA.parse(request.body))
+  );
   app.get('/v0.1/offers', async () => provider.offers());
+  app.post('/v0.1/rider-requests', async (request) =>
+    provider.requestRide(PROVIDER_RIDE_INPUT_SCHEMA.parse(request.body))
+  );
+  app.get('/v0.1/rider-requests', async (request) => {
+    const { riderId } = z.object({ riderId: ID_SCHEMA }).parse(request.query);
+    return provider.rides(riderId);
+  });
+  app.get('/v0.1/rider-requests/:id', async (request) => {
+    const { riderId } = z.object({ riderId: ID_SCHEMA }).parse(request.query);
+    const { id } = z.object({ id: z.uuid() }).parse(request.params);
+    return provider.ride(riderId, id);
+  });
   app.get('/v0.1/offers/:id', async (request) => {
     const { id } = z.object({ id: ID_SCHEMA }).parse(request.params);
     return provider.getOffer(id);

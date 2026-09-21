@@ -31,8 +31,28 @@ jobs:
       - run: pnpm test:conformance
         env:
           MONGODB_TEST_MODE: docker
+  mockride:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        role: [rider, driver]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.10.0
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build:protocol
+      - run: pnpm --filter @sakyawira/mockride-${{ matrix.role }} check
+      - run: pnpm --filter @sakyawira/mockride-${{ matrix.role }} build
   flutter:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        role: [rider, driver]
     steps:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
@@ -40,13 +60,18 @@ jobs:
           flutter-version: '3.44.6'
           channel: stable
           cache: true
-      - working-directory: openride-app-frontend
+      - working-directory: openride-${{ matrix.role }}-frontend
         run: |
           flutter pub get
           dart format --output=none --set-exit-if-changed lib test
           flutter analyze
           flutter test
           flutter build web --no-web-resources-cdn
+      - working-directory: openride-protocol/dart
+        run: |
+          dart pub get
+          dart format --output=none --set-exit-if-changed lib
+          dart analyze
       - working-directory: openride-design-system
         run: |
           flutter pub get

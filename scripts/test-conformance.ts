@@ -15,7 +15,7 @@ async function runTests(uri: string): Promise<number> {
       'tsx',
       '--test',
       '--test-concurrency=1',
-      ...['booking', 'storage', 'hosted'].map(
+      ...['booking', 'storage', 'hosted', 'rider'].map(
         (name) => `openride-app-backend/test/${name}.test.ts`
       ),
     ],

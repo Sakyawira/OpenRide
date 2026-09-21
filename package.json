@@ -21,7 +21,10 @@
     "build:protocol": "pnpm --filter @sakyawira/openride-protocol build",
     "design:serve": "node --import tsx scripts/serve-design-system.ts",
     "test:conformance": "pnpm build:protocol && node --import tsx scripts/test-conformance.ts",
-    "demo:hosted": "DEMO_PROVIDERS=embedded node --import tsx openride-app-backend/src/main.ts"
+    "demo:hosted": "DEMO_PROVIDERS=embedded node --import tsx openride-app-backend/src/main.ts",
+    "build:frontends": "bash scripts/build-frontends.sh",
+    "mockride:rider": "pnpm build:protocol && pnpm --filter @sakyawira/mockride-rider dev",
+    "mockride:driver": "pnpm build:protocol && pnpm --filter @sakyawira/mockride-driver dev"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.3.14",

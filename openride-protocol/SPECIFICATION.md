@@ -4,11 +4,12 @@ This is an experimental contract implemented by this repository. It is not an ex
 
 ## Participants and authority
 
+- **Rider client:** reviews a provider quote, requests a ride and reads progress for its authenticated rider.
 - **Driver client:** displays offers from participating providers and sends commands on behalf of its authenticated driver.
 - **Driver coordinator:** the single authority for that driver's availability. All participating acceptance paths must reserve with this authority before confirming a ride.
 - **Provider:** owns offers and assignments for its platform. It must enforce one assignment per order independently of the coordinator.
 
-The local reference has one coordinator, one fixture driver and two independently stored providers. `Authorization: Bearer openride-demo-driver` maps to `demo-driver`; a client cannot supply another driver identity. Providers use a separate fixture bearer token. These tokens are development credentials, not a federated identity design.
+The local reference has one coordinator, two fixture drivers, two fixture riders and two independently stored providers. OpenRide and MockRide each have rider and driver clients. Public demo tokens map to server-owned identities; a client cannot supply another identity in a body. Both apps can use the same token to represent the same participant. Providers use a separate private fixture bearer token. These tokens are development credentials, not a federated identity design.
 
 ## Safety invariants
 
@@ -72,7 +73,7 @@ Completed orders stay consumed. Cancellation releases a provider's order and dri
 - Version prefix: `/v0.1`; health reports `0.1.0-draft`.
 - JSON requests and responses, UTF-8. Timestamps are UTC ISO 8601.
 - Bearer authentication required on `/v0.1/*` and `/demo/*`. `/health` and Flutter static assets are public.
-- `Idempotency-Key` required for driver acceptance; 1–100 ASCII letters, digits, hyphens or underscores. UUIDs are recommended. Reuse it after an interrupted response.
+- `Idempotency-Key` required for driver acceptance and rider request creation; 1–100 ASCII letters, digits, hyphens or underscores. UUIDs are recommended. Reuse it after an interrupted response.
 - HTTP 200 for a resolved acceptance (inspect `state`, including `rejected`); 202 while an acceptance remains pending. Reconcile/action endpoints return 200 with the current state, which may still be `resolving`.
 - Errors use `{ "code": "DRIVER_BUSY", "message": "..." }`; 400 invalid input, 401 unauthenticated, 404 unknown resource/provider, 409 conflict, 502/503 dependency/service errors.
 - No external provider URLs are accepted from drivers. The server uses configured registered providers.
@@ -90,14 +91,37 @@ Completed orders stay consumed. Cancellation releases a provider's order and dri
 
 Snapshot offers are advisory and can become unavailable immediately. Acceptance always validates and reserves again. An unavailable provider is marked `available: false` and contributes no offers; other providers and an existing booking remain visible. The reference UI polls snapshots every two seconds.
 
+### Rider endpoints and service-owned pricing
+
+| Method | Path                                     | Purpose                                                         |
+| ------ | ---------------------------------------- | --------------------------------------------------------------- |
+| POST   | `/v0.1/rider/quotes`                     | Quote `{providerId, pickup, destination}`                       |
+| POST   | `/v0.1/rider/requests`                   | Submit that route with `expectedPrice` and an `Idempotency-Key` |
+| GET    | `/v0.1/rider/snapshot`                   | Owned requests and provider availability                        |
+| GET    | `/v0.1/rider/requests/{providerId}/{id}` | Read one owned request                                          |
+
+Each service supplies its own pricing policy. The protocol defines monetary terms, not a common tariff. A quote contains `fareMinor` (rider charge), `payoutMinor` (driver earnings), `currency` and `pricingVersion`. Amounts are integer minor units. Services may use flat fares, metered formulas, promotions or negotiated prices behind the pricing interface. The reference's metrics and prices are synthetic; no payment is taken.
+
+The rider clients first display the provider's quote, then submit it as `expectedPrice`. The provider recalculates and compares all terms before creating a request. A changed or modified price returns `409 PRICE_CHANGED` and requires another review. Quotes are advisory until submitted and do not hold availability. Draft compatibility permits omitting `expectedPrice`, which uses the provider's current price; both shipped rider UIs submit reviewed terms.
+
+The provider atomically saves the fare, driver payout and discoverable offer. Later policy changes do not reprice that request. A retry with the same rider/key/route/pricing returns the saved request, even after a tariff update or restart. Reusing that key with different terms returns `IDEMPOTENCY_CONFLICT`. Request keys are scoped per rider and provider. Driver acceptance checks the persisted offer version and payout rather than recalculating the rider's fare.
+
+Requests and offers may include `locations: {pickup: {latitude, longitude}, destination: {latitude, longitude}}` in WGS84 decimal degrees. Both points are required when present; latitude and longitude are range-checked. The provider retains these coordinates unchanged, includes them in request identity comparisons and exposes them to the accepted driver. Map rendering and tile providers are frontend concerns.
+
+Rider progress is derived from the provider's persisted assignment: `searching`, `matching`, `confirmed`, `in_progress`, `completed`, or `expired`. Cancelling a confirmed driver booking makes the request searchable again while unexpired. Rider-initiated cancellation, refunds and changing an active journey's fare are future work. Reads check ownership; driver credentials cannot call rider endpoints or vice versa. Clients poll every two seconds. No direct frontend-to-frontend connection is required.
+
 ### Provider endpoints
 
-| Method | Path                              | Purpose                                                                |
-| ------ | --------------------------------- | ---------------------------------------------------------------------- |
-| GET    | `/v0.1/offers`                    | List unexpired, unassigned offers                                      |
-| GET    | `/v0.1/offers/{id}`               | Read exact versioned offer terms                                       |
-| POST   | `/v0.1/reservations`              | Prepare `{bookingId, driverId, offerId, offerVersion, token}`          |
-| POST   | `/v0.1/reservations/{id}/actions` | Apply `{token, action: "commit" \| "start" \| "complete" \| "cancel"}` |
+| Method | Path                                    | Purpose                                                                          |
+| ------ | --------------------------------------- | -------------------------------------------------------------------------------- |
+| POST   | `/v0.1/ride-quotes`                     | Quote a route using the provider's policy                                        |
+| POST   | `/v0.1/rider-requests`                  | Create a request and offer with verified rider ID, replay key and expected price |
+| GET    | `/v0.1/rider-requests?riderId=...`      | List that rider's requests                                                       |
+| GET    | `/v0.1/rider-requests/{id}?riderId=...` | Read an owned request                                                            |
+| GET    | `/v0.1/offers`                          | List unexpired, unassigned offers                                                |
+| GET    | `/v0.1/offers/{id}`                     | Read exact versioned offer terms                                                 |
+| POST   | `/v0.1/reservations`                    | Prepare `{bookingId, driverId, offerId, offerVersion, token}`                    |
+| POST   | `/v0.1/reservations/{id}/actions`       | Apply `{token, action: "commit" \| "start" \| "complete" \| "cancel"}`           |
 
 The secret reservation token is generated by the coordinator and is never included in driver responses. Provider booking ID, driver ID, offer ID/version and token must match when replaying prepare. Production transport must use authenticated TLS, proper provider identity, scoped credentials and replay protection.
 

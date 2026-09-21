@@ -3,13 +3,18 @@
 ## Ownership
 
 ```text
-openride-protocol/       Specification, OpenAPI, TypeScript contracts
-openride-app-frontend/   Flutter app, API adapter, controllers, flows
-openride-app-backend/    Coordinator, interfaces, infrastructure adapters
-openride-design-system/  Styled Flutter components, assets, Widgetbook
+openride-protocol/          Specification, OpenAPI, TypeScript SDK and dart/ SDK
+openride-rider-frontend/    Flutter rider application
+openride-driver-frontend/   Flutter driver application
+mockride-rider-frontend/    React rider application
+mockride-driver-frontend/   React driver application
+openride-app-backend/       Shared API, coordinator, interfaces, storage adapters
+openride-design-system/     Styled Flutter components, assets, Widgetbook
 ```
 
-Backend → protocol is a pnpm workspace dependency. Frontend → design system is a Dart path dependency. Protocol and design system do not import the apps. The Flutter API adapter currently maps the versioned JSON contract manually. Tooling, CI and cross-project documentation stay at the root.
+All four frontends are independent top-level projects. Backend and React frontends consume the protocol npm workspace package. Flutter frontends consume the Dart protocol and design-system packages. No frontend imports another frontend, and no protocol package imports an app, database or UI. Tooling, CI and cross-project documentation stay at the root.
+
+A rider request is stored by its chosen provider, atomically with its discoverable offer. The coordinator's rider facade talks through `RiderProviderAdapter`, while driver commands use `ProviderAdapter`. `RideRequestRepository` separates rider storage from those services. Either brand's driver can accept the offer. The provider's reservation becomes the source of the rider's progress, read through authenticated polling. Both roles share a backend deployment, but have separate credentials and ownership checks. See [interoperability](interoperability.md).
 
 ## Few servers first
 
@@ -23,7 +28,9 @@ Offer discovery, cached profiles, tutorial progress and noncritical updates are 
 
 - `BookingRepository`: atomic driver claims, serialized updates, durable pending commands, state and event committed together. Future adapters must preserve these guarantees across all writers; basic CRUD or eventual replication is insufficient.
 - `ProviderAdapter`: offers and idempotent prepare/commit/action commands. A P2P transport must preserve authenticated identity, stable booking IDs, acknowledgements and uncertainty handling.
-- `DriverAuthenticator`: transport-independent verified identity.
+- `RiderProviderAdapter` and `RideRequestRepository`: rider request submission, ownership-scoped reads and durable offer publication.
+- `RidePricing`: provider-owned fare and payout rules. Quotes are validated before atomic request/offer publication; saved rides retain their terms.
+- `ParticipantAuthenticator`: transport-independent verified identity.
 - `RecoveryScheduler`: reconciliation triggers only; pending commands live durably in the repository.
 - `DemoOfferSeeder`: fixture capability outside the interoperable protocol.
 

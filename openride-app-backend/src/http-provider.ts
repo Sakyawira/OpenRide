@@ -2,17 +2,23 @@ import { z } from 'zod';
 import {
   OFFER_SCHEMA,
   PROVIDER_RESERVATION_SCHEMA,
+  RIDE_REQUEST_SCHEMA,
+  RIDE_QUOTE_SCHEMA,
+  type RideInput,
+  type RideQuote,
   ProtocolError,
   type Offer,
   type PrepareRequest,
   type ProviderAction,
   type ProviderReservation,
+  type ProviderRideInput,
+  type RideRequest,
 } from '@sakyawira/openride-protocol';
-import type { ProviderAdapter } from './ports';
+import type { ProviderAdapter, RiderProviderAdapter } from './ports';
 
 const ERROR_SCHEMA = z.object({ code: z.string(), message: z.string() });
 
-export class HttpProvider implements ProviderAdapter {
+export class HttpProvider implements ProviderAdapter, RiderProviderAdapter {
   constructor(
     readonly id: string,
     readonly name: string,
@@ -61,5 +67,33 @@ export class HttpProvider implements ProviderAdapter {
   }
   async seed(): Promise<void> {
     await this.request('/demo/offers', {});
+  }
+
+  async quote(input: RideInput): Promise<RideQuote> {
+    const quote = RIDE_QUOTE_SCHEMA.parse(await this.request('/v0.1/ride-quotes', input));
+    if (
+      quote.providerId !== this.id ||
+      quote.pickup !== input.pickup ||
+      quote.destination !== input.destination ||
+      JSON.stringify(quote.locations) !== JSON.stringify(input.locations)
+    )
+      throw new ProtocolError('INVALID_PROVIDER_RESPONSE', 'Quote identity mismatch.', 502);
+    return quote;
+  }
+
+  async requestRide(input: ProviderRideInput): Promise<RideRequest> {
+    return RIDE_REQUEST_SCHEMA.parse(await this.request('/v0.1/rider-requests', input));
+  }
+  async ride(riderId: string, id: string): Promise<RideRequest> {
+    return RIDE_REQUEST_SCHEMA.parse(
+      await this.request(
+        `/v0.1/rider-requests/${encodeURIComponent(id)}?riderId=${encodeURIComponent(riderId)}`
+      )
+    );
+  }
+  async rides(riderId: string): Promise<RideRequest[]> {
+    return RIDE_REQUEST_SCHEMA.array().parse(
+      await this.request(`/v0.1/rider-requests?riderId=${encodeURIComponent(riderId)}`)
+    );
   }
 }

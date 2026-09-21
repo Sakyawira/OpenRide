@@ -14,6 +14,8 @@ export class MongoDatabase {
   static async open(uri: string, database: string): Promise<MongoDatabase> {
     const client = new MongoClient(uri, {
       maxPoolSize: 5,
+      // Optional wire fields must remain absent rather than becoming BSON null.
+      ignoreUndefined: true,
       serverSelectionTimeoutMS: 10_000,
       readPreference: 'primary',
       readConcern: { level: 'majority' },

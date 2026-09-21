@@ -10,6 +10,7 @@ const SVG = await readFile(resolve(ROOT, 'openride-design-system/assets/brand/lo
 const MARK = SVG.replace(/<svg[^>]*>/, '').replace('</svg>', '');
 const OUTPUTS = new Map();
 const BACKGROUND = '#EFFFFF';
+const FLUTTER_APPS = ['openride-driver-frontend', 'openride-rider-frontend'];
 
 function icon(scale, background = BACKGROUND, rounded = false) {
   const offset = (256 - 256 * scale) / 2;
@@ -34,7 +35,10 @@ async function png(path, size, svg, opaque = false) {
   OUTPUTS.set(path, size);
 }
 
-for (const webRoot of ['openride-app-frontend/web', 'openride-design-system/catalog/web']) {
+for (const webRoot of [
+  ...FLUTTER_APPS.map((app) => `${app}/web`),
+  'openride-design-system/catalog/web',
+]) {
   await save(`${webRoot}/logo.svg`, SVG);
   await save(`${webRoot}/favicon.svg`, icon(0.94));
   await png(`${webRoot}/favicon.png`, 48, icon(0.94));
@@ -44,51 +48,53 @@ for (const webRoot of ['openride-app-frontend/web', 'openride-design-system/cata
     await png(`${webRoot}/icons/Icon-maskable-${size}.png`, size, icon(0.66));
   }
 }
-for (const size of [16, 32, 64, 128, 256, 512, 1024]) {
-  await png(
-    `openride-app-frontend/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_${size}.png`,
-    size,
-    icon(0.84, BACKGROUND, true)
-  );
-}
+for (const app of FLUTTER_APPS) {
+  for (const size of [16, 32, 64, 128, 256, 512, 1024]) {
+    await png(
+      `${app}/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_${size}.png`,
+      size,
+      icon(0.84, BACKGROUND, true)
+    );
+  }
 
-const IOS_ROOT = 'openride-app-frontend/ios/Runner/Assets.xcassets';
-const IOS_CONTENTS = JSON.parse(
-  await readFile(resolve(ROOT, `${IOS_ROOT}/AppIcon.appiconset/Contents.json`), 'utf8')
-);
-for (const item of IOS_CONTENTS.images) {
-  if (!item.filename) continue;
-  const size = Math.round(Number.parseFloat(item.size) * Number.parseFloat(item.scale));
-  await png(`${IOS_ROOT}/AppIcon.appiconset/${item.filename}`, size, icon(0.84), true);
-}
-for (const scale of [1, 2, 3]) {
-  await png(
-    `${IOS_ROOT}/LaunchImage.imageset/LaunchImage${scale === 1 ? '' : `@${scale}x`}.png`,
-    160 * scale,
-    icon(0.9, null)
+  const IOS_ROOT = `${app}/ios/Runner/Assets.xcassets`;
+  const IOS_CONTENTS = JSON.parse(
+    await readFile(resolve(ROOT, `${IOS_ROOT}/AppIcon.appiconset/Contents.json`), 'utf8')
   );
-}
+  for (const item of IOS_CONTENTS.images) {
+    if (!item.filename) continue;
+    const size = Math.round(Number.parseFloat(item.size) * Number.parseFloat(item.scale));
+    await png(`${IOS_ROOT}/AppIcon.appiconset/${item.filename}`, size, icon(0.84), true);
+  }
+  for (const scale of [1, 2, 3]) {
+    await png(
+      `${IOS_ROOT}/LaunchImage.imageset/LaunchImage${scale === 1 ? '' : `@${scale}x`}.png`,
+      160 * scale,
+      icon(0.9, null)
+    );
+  }
 
-const ANDROID_ROOT = 'openride-app-frontend/android/app/src/main/res';
-for (const [density, size, factor] of [
-  ['mdpi', 48, 1],
-  ['hdpi', 72, 1.5],
-  ['xhdpi', 96, 2],
-  ['xxhdpi', 144, 3],
-  ['xxxhdpi', 192, 4],
-]) {
-  await png(`${ANDROID_ROOT}/mipmap-${density}/ic_launcher.png`, size, icon(0.84));
-  await png(
-    `${ANDROID_ROOT}/drawable-${density}/openride_splash.png`,
-    160 * factor,
-    icon(0.9, null)
-  );
-  // Adaptive icons use a 108dp canvas; keep content inside its central safe region.
-  await png(
-    `${ANDROID_ROOT}/drawable-${density}/ic_launcher_foreground.png`,
-    108 * factor,
-    icon(0.58, null)
-  );
+  const ANDROID_ROOT = `${app}/android/app/src/main/res`;
+  for (const [density, size, factor] of [
+    ['mdpi', 48, 1],
+    ['hdpi', 72, 1.5],
+    ['xhdpi', 96, 2],
+    ['xxhdpi', 144, 3],
+    ['xxxhdpi', 192, 4],
+  ]) {
+    await png(`${ANDROID_ROOT}/mipmap-${density}/ic_launcher.png`, size, icon(0.84));
+    await png(
+      `${ANDROID_ROOT}/drawable-${density}/openride_splash.png`,
+      160 * factor,
+      icon(0.9, null)
+    );
+    // Adaptive icons use a 108dp canvas; keep content inside its central safe region.
+    await png(
+      `${ANDROID_ROOT}/drawable-${density}/ic_launcher_foreground.png`,
+      108 * factor,
+      icon(0.58, null)
+    );
+  }
 }
 
 // Check export dimensions and that no output is an empty/transparent placeholder.
@@ -96,7 +102,7 @@ for (const [path, expected] of OUTPUTS) {
   const input = sharp(resolve(ROOT, path));
   const metadata = await input.metadata();
   const stats = await input.stats();
-  if (path.startsWith(`${IOS_ROOT}/AppIcon.appiconset/`) && metadata.hasAlpha) {
+  if (path.includes('/ios/Runner/Assets.xcassets/AppIcon.appiconset/') && metadata.hasAlpha) {
     throw new Error(`iOS app icon contains an alpha channel: ${path}`);
   }
   if (

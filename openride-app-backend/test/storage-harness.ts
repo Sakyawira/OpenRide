@@ -57,6 +57,7 @@ export async function createStorageHarness(t: TestContext, storageCase: StorageC
     await rm(directory, { recursive: true, force: true });
   });
   return {
+    own,
     coordinatorConfig: config(storageCase.coordinator),
     providerConfig: config(storageCase.provider),
     async openStore() {

@@ -1,24 +1,146 @@
 import { randomUUID } from 'node:crypto';
 import {
   ProtocolError,
+  PRICE_TERMS_SCHEMA,
+  type RideInput,
+  type RideQuote,
+  type PriceTerms,
   type Offer,
   type PrepareRequest,
   type ProviderAction,
   type ProviderReservation,
+  type ProviderRideInput,
+  type RideRequest,
 } from '@sakyawira/openride-protocol';
-import type { ReservationRecord } from './domain';
-import type { ProviderAdapter, ProviderRepository } from './ports';
+import type { ReservationRecord, RideRequestRecord } from './domain';
+import type {
+  ProviderAdapter,
+  ProviderRepository,
+  RiderProviderAdapter,
+  RidePricing,
+} from './ports';
+import { demoPricing } from './pricing';
 
 /** Provider behavior is shared by every storage adapter. Offers are immutable. */
-export class DemoProvider implements ProviderAdapter {
+export class DemoProvider implements ProviderAdapter, RiderProviderAdapter {
   constructor(
     readonly id: string,
     readonly name: string,
-    private readonly store: ProviderRepository
+    private readonly store: ProviderRepository,
+    private readonly pricing: RidePricing = demoPricing(id)
   ) {}
 
   async offers(): Promise<Offer[]> {
     return this.store.availableOffers(new Date());
+  }
+
+  async quote(input: RideInput): Promise<RideQuote> {
+    return {
+      pickup: input.pickup,
+      destination: input.destination,
+      locations: input.locations,
+      providerId: this.id,
+      price: PRICE_TERMS_SCHEMA.parse(await this.pricing.quote(input)),
+    };
+  }
+
+  private samePrice(first: PriceTerms, second: PriceTerms): boolean {
+    return (
+      first.fareMinor === second.fareMinor &&
+      first.payoutMinor === second.payoutMinor &&
+      first.currency === second.currency &&
+      first.pricingVersion === second.pricingVersion
+    );
+  }
+
+  async requestRide(input: ProviderRideInput): Promise<RideRequest> {
+    let record = await this.store.rideByKey(input.riderId, input.requestKey);
+    if (!record) {
+      const { price } = await this.quote(input);
+      if (input.expectedPrice && !this.samePrice(input.expectedPrice, price))
+        throw new ProtocolError(
+          'PRICE_CHANGED',
+          'The price changed. Review a new quote before requesting.'
+        );
+      const id = randomUUID();
+      const createdAt = new Date().toISOString();
+      record = await this.store.createRide({
+        id,
+        riderId: input.riderId,
+        requestKey: input.requestKey,
+        createdAt,
+        price,
+        offer: {
+          id,
+          providerId: this.id,
+          providerName: this.name,
+          version: 1,
+          pickup: input.pickup,
+          destination: input.destination,
+          locations: input.locations,
+          payoutMinor: price.payoutMinor,
+          currency: price.currency,
+          pickupMinutes: 4,
+          tripMinutes: 12,
+          distanceKm: 5,
+          expiresAt: new Date(Date.now() + 30 * 60_000).toISOString(),
+        },
+      });
+    }
+    if (
+      record.offer.pickup !== input.pickup ||
+      record.offer.destination !== input.destination ||
+      JSON.stringify(record.offer.locations) !== JSON.stringify(input.locations)
+    )
+      throw new ProtocolError(
+        'IDEMPOTENCY_CONFLICT',
+        'This request key was already used for another route.'
+      );
+    if (input.expectedPrice && record.price && !this.samePrice(input.expectedPrice, record.price))
+      throw new ProtocolError(
+        'IDEMPOTENCY_CONFLICT',
+        'This request key was already used with different pricing.'
+      );
+    return this.publicRide(record);
+  }
+
+  async ride(riderId: string, id: string): Promise<RideRequest> {
+    const record = await this.store.getRide(riderId, id);
+    if (!record) throw new ProtocolError('RIDE_NOT_FOUND', 'Ride request not found.', 404);
+    return this.publicRide(record);
+  }
+
+  async rides(riderId: string): Promise<RideRequest[]> {
+    return Promise.all(
+      (await this.store.listRides(riderId)).map((record) => this.publicRide(record))
+    );
+  }
+
+  private async publicRide(record: RideRequestRecord): Promise<RideRequest> {
+    const reservation = await this.store.reservationForOffer(record.offer.id);
+    const status = reservation
+      ? reservation.state === 'prepared'
+        ? 'matching'
+        : reservation.state === 'cancelled'
+          ? 'searching'
+          : reservation.state
+      : Date.parse(record.offer.expiresAt) <= Date.now()
+        ? 'expired'
+        : 'searching';
+    return {
+      id: record.id,
+      providerId: this.id,
+      providerName: this.name,
+      pickup: record.offer.pickup,
+      destination: record.offer.destination,
+      locations: record.offer.locations,
+      fareMinor: record.price?.fareMinor ?? record.offer.payoutMinor,
+      currency: record.offer.currency,
+      createdAt: record.createdAt,
+      expiresAt: record.offer.expiresAt,
+      status,
+      bookingId: reservation?.bookingId ?? null,
+    };
   }
 
   async getOffer(id: string): Promise<Offer> {

@@ -4,7 +4,10 @@ import tseslint from 'typescript-eslint';
 export default tseslint.config(
   {
     ignores: [
-      'openride-app-frontend/**',
+      'openride-driver-frontend/**',
+      'openride-rider-frontend/**',
+      'mockride-driver-frontend/**',
+      'mockride-rider-frontend/**',
       'openride-design-system/**',
       '**/dist/**',
       'node_modules/**',

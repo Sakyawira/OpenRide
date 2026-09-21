@@ -224,6 +224,37 @@ class OpenRideCatalog extends StatelessWidget {
             ],
           ),
           WidgetbookComponent(
+            name: 'Rider journey',
+            useCases: [
+              WidgetbookUseCase(
+                name: 'Journey status',
+                builder: (context) => OpenRideJourneyCard(
+                  pickup: 'Britomart',
+                  destination: 'Newmarket',
+                  provider: 'Harbour Cooperative',
+                  fare: 'NZD 19.90',
+                  status: context.knobs.string(
+                    label: 'Status',
+                    initialValue: 'Driver confirmed',
+                  ),
+                  message: 'Your journey updates from the ride provider.',
+                ),
+              ),
+            ],
+          ),
+          WidgetbookComponent(
+            name: 'Map',
+            useCases: [
+              WidgetbookUseCase(
+                name: 'Pickup and destination',
+                builder: (_) => const OpenRideMap(
+                  pickup: MapPoint(-36.844, 174.768),
+                  destination: MapPoint(-36.869, 174.778),
+                ),
+              ),
+            ],
+          ),
+          WidgetbookComponent(
             name: 'Trip panel',
             useCases: [
               WidgetbookUseCase(

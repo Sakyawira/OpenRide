@@ -1,5 +1,7 @@
 packages:
   - openride-protocol
   - openride-app-backend
+  - mockride-rider-frontend
+  - mockride-driver-frontend
 allowBuilds:
   esbuild: true

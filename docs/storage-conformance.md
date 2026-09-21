@@ -32,7 +32,7 @@ MONGODB_TEST_MODE=docker pnpm test:conformance
 
 An existing test replica set can be supplied using `TEST_MONGODB_URI`. Each test creates and drops only its own randomly named `openride_test_*` database. Never point this test command at a production database account.
 
-The suite runs PGlite/PGlite, MongoDB/MongoDB and both mixed coordinator/provider combinations. It covers racing accepts, replay keys, lost acknowledgements, restart recovery on both sides, HTTP interoperability, order ownership, cancellation, stale replies, event pagination, concurrent mutations, and real transaction rollback when event persistence fails. CI runs the same suite against a real `mongo:8.2` replica set.
+The suite runs PGlite/PGlite, MongoDB/MongoDB and both mixed coordinator/provider combinations. It covers racing accepts, replay keys, lost acknowledgements, restart recovery on both sides, HTTP interoperability, order ownership, cancellation, stale replies, event pagination, concurrent mutations, real transaction rollback when event persistence fails, rider request replay/ownership, and both directions of cross-brand rider/driver completion. The matrix also covers service-owned quotes, price tampering, tariff changes and coordinate preservation from rider to driver. CI runs the same suite against a real `mongo:8.2` replica set.
 
 ## One free Render service
 
@@ -46,7 +46,7 @@ STORAGE_ADAPTER=mongodb MONGODB_URI='mongodb://127.0.0.1:27017/?replicaSet=openr
 
 Free Render can sleep and cold-start; that is acceptable for this proof of concept. Pending commands are recovered when the service wakes, and an uncertain booking remains reserved while it sleeps. Open the API's `/health` URL to wake it before a demo. Use **New demo offers** after the original synthetic offers expire.
 
-The API does not build Flutter on Render. Run the Flutter clients locally against its HTTPS URL using `--dart-define=OPENRIDE_URL=https://YOUR_SERVICE.onrender.com`, or deploy their web builds separately. Set `CORS_ORIGINS` to the exact comma-separated web origins allowed to call the API. Native clients do not need CORS. All app instances share the public fixture driver: this is an intentionally public simulation with synthetic data, no real dispatch or payments.
+The API does not build any frontend on Render; its `/apps` launcher is usable only after frontend artifacts are built or deployed to their own sites. Run the Flutter clients locally against its HTTPS URL using `--dart-define=OPENRIDE_URL=https://YOUR_SERVICE.onrender.com`, or deploy their web builds separately. Set `CORS_ORIGINS` to the exact comma-separated web origins allowed to call the API. Native clients do not need CORS. OpenRide and MockRide have separate public fixture riders and drivers; instances using the same token share that identity: this is an intentionally public simulation with synthetic data, no real dispatch or payments.
 
 The blueprint is deployable configuration, not evidence of a live deployment. A Render service and MongoDB connection must still be configured by the repository owner.
 

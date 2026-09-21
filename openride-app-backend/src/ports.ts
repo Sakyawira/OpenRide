@@ -4,8 +4,13 @@ import type {
   ProviderAction,
   ProviderReservation,
   ProtocolEvent,
+  ProviderRideInput,
+  RideRequest,
+  RideInput,
+  PriceTerms,
+  RideQuote,
 } from '@sakyawira/openride-protocol';
-import type { BookingRecord, ReservationRecord } from './domain';
+import type { BookingRecord, ReservationRecord, RideRequestRecord } from './domain';
 
 export interface ProviderAdapter {
   id: string;
@@ -14,6 +19,29 @@ export interface ProviderAdapter {
   getOffer(id: string): Promise<Offer>;
   prepare(request: PrepareRequest): Promise<ProviderReservation>;
   apply(id: string, token: string, action: ProviderAction): Promise<ProviderReservation>;
+}
+
+export interface RiderProviderAdapter {
+  id: string;
+  name: string;
+  quote(input: RideInput): Promise<RideQuote>;
+  requestRide(input: ProviderRideInput): Promise<RideRequest>;
+  ride(riderId: string, id: string): Promise<RideRequest>;
+  rides(riderId: string): Promise<RideRequest[]>;
+}
+
+/** Each provider owns its tariff; the protocol only carries validated monetary terms. */
+export interface RidePricing {
+  quote(input: RideInput): Promise<PriceTerms>;
+}
+
+/** Rider creation must atomically publish its offer and preserve replay keys. */
+export interface RideRequestRepository {
+  rideByKey(riderId: string, key: string): Promise<RideRequestRecord | undefined>;
+  createRide(record: RideRequestRecord): Promise<RideRequestRecord>;
+  getRide(riderId: string, id: string): Promise<RideRequestRecord | undefined>;
+  listRides(riderId: string): Promise<RideRequestRecord[]>;
+  reservationForOffer(offerId: string): Promise<ReservationRecord | undefined>;
 }
 
 /** Reference-demo capability, deliberately outside the interoperable transport. */
@@ -42,7 +70,7 @@ export interface BookingRepository {
  * Existing booking IDs return the original record, even after completion/cancellation.
  * Mutation callbacks are pure and may be retried by a transactional adapter.
  */
-export interface ProviderRepository {
+export interface ProviderRepository extends RideRequestRepository {
   availableOffers(now: Date): Promise<Offer[]>;
   getOffer(id: string): Promise<Offer | undefined>;
   getReservation(id: string): Promise<ReservationRecord | undefined>;
@@ -63,6 +91,6 @@ export interface RecoveryScheduler {
 }
 
 /** Bind an incoming bearer credential to identity; never trust a driver ID in the body. */
-export interface DriverAuthenticator {
+export interface ParticipantAuthenticator {
   authenticate(authorization: string | undefined): Promise<string>;
 }

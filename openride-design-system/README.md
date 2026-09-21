@@ -41,3 +41,5 @@ dependencies:
 GitHub Packages does not provide a Dart/pub registry. Use Git dependencies initially, then pub.dev or a compatible private Dart registry. A GitHub Release can also carry a catalogue/asset bundle. The package remains `publish_to: none` until the public API and release destination are agreed. See [Dart dependency sources](https://dart.dev/tools/pub/dependencies) and [GitHub's supported registries](https://docs.github.com/en/packages/learn-github-packages/introduction-to-github-packages#supported-clients-and-formats).
 
 Edit the SVG in `assets/brand/`; the original PNG reference is preserved there. Run `pnpm brand:generate` from the root to regenerate app icons. See [branding](../docs/branding.md).
+
+`OpenRideJourneyCard` presents rider progress. `OpenRideMap` is a styled OpenStreetMap surface for stop selection or display; it accepts UI-only coordinates and callbacks. Widgetbook includes both components. The protocol and booking rules remain outside this package. See [map configuration](../docs/maps.md).

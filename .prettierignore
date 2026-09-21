@@ -1,7 +1,11 @@
-openride-app-frontend
+openride-driver-frontend
 .data
 node_modules
 pnpm-lock.yaml
 .obsidian
 openride-design-system
 COPYING
+openride-rider-frontend
+openride-protocol/dart
+mockride-driver-frontend
+mockride-rider-frontend

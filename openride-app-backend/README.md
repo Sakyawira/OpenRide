@@ -2,14 +2,16 @@
 
 Reference booking coordinator and simulated providers. Start from the repository root with `pnpm dev`.
 
-| Boundary                         | Interface           | Current adapter                          |
-| -------------------------------- | ------------------- | ---------------------------------------- |
-| Persistence and atomic event log | BookingRepository   | BookingStore / PGlite, MongoBookingStore |
-| Provider persistence             | ProviderRepository  | PgliteProviderStore, MongoProviderStore  |
-| Provider communication           | ProviderAdapter     | HttpProvider / HTTP JSON                 |
-| Driver identity                  | DriverAuthenticator | StaticBearerAuthenticator fixture        |
-| Recovery scheduling              | RecoveryScheduler   | IntervalRecoveryScheduler                |
-| Demo order generation            | DemoOfferSeeder     | Local provider simulators                |
+| Boundary                         | Interface                | Current adapter                              |
+| -------------------------------- | ------------------------ | -------------------------------------------- |
+| Persistence and atomic event log | BookingRepository        | BookingStore / PGlite, MongoBookingStore     |
+| Provider persistence             | ProviderRepository       | PgliteProviderStore, MongoProviderStore      |
+| Rider pricing                    | RidePricing              | FlatFarePricing, MeteredDemoPricing          |
+| Rider provider communication     | RiderProviderAdapter     | HttpProvider / HTTP JSON                     |
+| Provider communication           | ProviderAdapter          | HttpProvider / HTTP JSON                     |
+| Participant identity             | ParticipantAuthenticator | FixtureTokenAuthenticator / provider fixture |
+| Recovery scheduling              | RecoveryScheduler        | IntervalRecoveryScheduler                    |
+| Demo order generation            | DemoOfferSeeder          | Local provider simulators                    |
 
 `Coordinator` depends on interfaces and protocol types. `main.ts` selects concrete adapters. Fastify translates HTTP commands into coordinator calls and gets identity from the injected authenticator.
 

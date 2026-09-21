@@ -3,6 +3,7 @@ import type {
   PrepareRequest,
   ProviderAction,
   ProviderReservation,
+  PriceTerms,
 } from '@sakyawira/openride-protocol';
 
 export interface BookingRecord extends Booking {
@@ -12,6 +13,15 @@ export interface BookingRecord extends Booking {
 }
 
 export interface ReservationRecord extends PrepareRequest, ProviderReservation {}
+
+export interface RideRequestRecord {
+  id: string;
+  riderId: string;
+  requestKey: string;
+  createdAt: string;
+  offer: Booking['offer'];
+  price?: PriceTerms;
+}
 
 export function publicBooking(record: BookingRecord): Booking {
   return {

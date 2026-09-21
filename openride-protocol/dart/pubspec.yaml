@@ -1,0 +1,10 @@
+name: openride_protocol
+description: Dart HTTP client and wire models for the OpenRide protocol.
+version: 0.1.0
+publish_to: 'none'
+environment:
+  sdk: ^3.12.2
+dependencies:
+  http: ^1.6.0
+dev_dependencies:
+  lints: ^6.0.0

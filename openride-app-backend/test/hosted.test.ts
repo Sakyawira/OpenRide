@@ -4,7 +4,7 @@ import { spawn } from 'node:child_process';
 import { once } from 'node:events';
 import { test } from 'node:test';
 import { setTimeout as delay } from 'node:timers/promises';
-import type { Booking, Offer } from '@sakyawira/openride-protocol';
+import type { Booking, Offer, RideRequest } from '@sakyawira/openride-protocol';
 import { createStorageHarness, STORAGE_CASES } from './storage-harness';
 
 for (const storageCase of STORAGE_CASES.filter((entry) => entry.coordinator === entry.provider)) {
@@ -52,14 +52,14 @@ for (const storageCase of STORAGE_CASES.filter((entry) => entry.coordinator === 
       }
       t.after(stop);
       const deadline = Date.now() + 30_000;
-      while (!output.includes('OpenRide driver app:') && Date.now() < deadline) {
+      while (!output.includes('OpenRide demo apps:') && Date.now() < deadline) {
         if (launchError) throw launchError;
         if (child.exitCode !== null) throw new Error(`Hosted demo exited: ${failed}`);
         await delay(100);
       }
-      const url = /OpenRide driver app: (http:\/\/[^\s]+)/.exec(output)?.[1];
+      const url = /OpenRide demo apps: (http:\/\/[^\s]+)/.exec(output)?.[1];
       assert.ok(url, `Hosted demo did not become ready: ${failed}`);
-      return { url, stop };
+      return { url: new URL(url).origin, stop };
     }
     const first = await start();
     const headers = {
@@ -77,10 +77,22 @@ for (const storageCase of STORAGE_CASES.filter((entry) => entry.coordinator === 
     });
     assert.equal(preflight.status, 204);
     assert.equal(preflight.headers.get('access-control-allow-origin'), 'https://example.test');
+    const riderHeaders = { ...headers, authorization: 'Bearer openride-demo-rider' };
+    const requestResponse = await fetch(`${first.url}/v0.1/rider/requests`, {
+      method: 'POST',
+      headers: riderHeaders,
+      body: JSON.stringify({
+        providerId: 'harbour',
+        pickup: 'Restart station',
+        destination: 'Persisted square',
+      }),
+    });
+    assert.equal(requestResponse.status, 200);
+    const ride = (await requestResponse.json()) as RideRequest;
     const snapshot = (await (await fetch(`${first.url}/v0.1/snapshot`, { headers })).json()) as {
       offers: Offer[];
     };
-    const offer = snapshot.offers[0];
+    const offer = snapshot.offers.find((value) => value.id === ride.id);
     assert.ok(offer);
     const accepted = await fetch(`${first.url}/v0.1/bookings`, {
       method: 'POST',
@@ -113,6 +125,11 @@ for (const storageCase of STORAGE_CASES.filter((entry) => entry.coordinator === 
     };
     assert.equal(finished.activeBooking, null);
     assert.ok(!finished.offers.some((candidate) => candidate.id === offer.id));
+    const riderResponse = await fetch(
+      `${second.url}/v0.1/rider/requests/${ride.providerId}/${ride.id}`,
+      { headers: riderHeaders }
+    );
+    assert.equal(((await riderResponse.json()) as RideRequest).status, 'completed');
     await second.stop();
   });
 }

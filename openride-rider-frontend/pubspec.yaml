@@ -1,0 +1,25 @@
+name: openride_rider
+description: "OpenRide rider reference app for a shared ride-booking protocol."
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.12.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+  openride_design_system:
+    path: ../openride-design-system
+  openride_protocol:
+    path: ../openride-protocol/dart
+  uuid: ^4.6.0
+
+dev_dependencies:
+  http: ^1.6.0
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true

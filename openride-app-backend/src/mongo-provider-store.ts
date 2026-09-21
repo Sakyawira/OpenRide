@@ -1,6 +1,6 @@
 import type { Collection } from 'mongodb';
 import { ProtocolError, type Offer } from '@sakyawira/openride-protocol';
-import type { ReservationRecord } from './domain';
+import type { ReservationRecord, RideRequestRecord } from './domain';
 import { MongoDatabase, isDuplicateKey } from './mongo-database';
 import type { ProviderRepository } from './ports';
 
@@ -8,6 +8,13 @@ interface OfferDocument {
   _id: string;
   expiresAt: Date;
   record: Offer;
+}
+interface RideDocument {
+  _id: string;
+  riderId: string;
+  requestKey: string;
+  createdAt: string;
+  record: RideRequestRecord;
 }
 interface ReservationDocument {
   _id: string;
@@ -32,6 +39,7 @@ function document(record: ReservationRecord): ReservationDocument {
 export class MongoProviderStore implements ProviderRepository {
   private readonly offers: Collection<OfferDocument>;
   private readonly reservations: Collection<ReservationDocument>;
+  private readonly requests: Collection<RideDocument>;
 
   private constructor(
     private readonly mongo: MongoDatabase,
@@ -39,6 +47,7 @@ export class MongoProviderStore implements ProviderRepository {
   ) {
     this.offers = mongo.db.collection(`provider_${providerId}_offers`);
     this.reservations = mongo.db.collection(`provider_${providerId}_reservations`);
+    this.requests = mongo.db.collection(`provider_${providerId}_ride_requests`);
   }
 
   static async open(
@@ -51,6 +60,8 @@ export class MongoProviderStore implements ProviderRepository {
     const store = new MongoProviderStore(mongo, providerId);
     try {
       await store.offers.createIndex({ expiresAt: -1 });
+      await store.requests.createIndex({ riderId: 1, requestKey: 1 }, { unique: true });
+      await store.requests.createIndex({ riderId: 1, createdAt: -1 });
       await store.reservations.createIndex(
         { offerId: 1 },
         {
@@ -85,6 +96,55 @@ export class MongoProviderStore implements ProviderRepository {
 
   async getOffer(id: string): Promise<Offer | undefined> {
     return (await this.offers.findOne({ _id: id }))?.record;
+  }
+
+  async rideByKey(riderId: string, requestKey: string): Promise<RideRequestRecord | undefined> {
+    return (await this.requests.findOne({ riderId, requestKey }))?.record;
+  }
+
+  async createRide(record: RideRequestRecord): Promise<RideRequestRecord> {
+    try {
+      return await this.mongo.transaction(async (session) => {
+        await this.requests.insertOne(
+          {
+            _id: record.id,
+            riderId: record.riderId,
+            requestKey: record.requestKey,
+            createdAt: record.createdAt,
+            record,
+          },
+          { session }
+        );
+        await this.offers.insertOne(
+          {
+            _id: record.offer.id,
+            expiresAt: new Date(record.offer.expiresAt),
+            record: record.offer,
+          },
+          { session }
+        );
+        return record;
+      });
+    } catch (error) {
+      if (!isDuplicateKey(error)) throw error;
+      const existing = await this.rideByKey(record.riderId, record.requestKey);
+      if (!existing) throw error;
+      return existing;
+    }
+  }
+
+  async getRide(riderId: string, id: string): Promise<RideRequestRecord | undefined> {
+    return (await this.requests.findOne({ riderId, _id: id }))?.record;
+  }
+
+  async listRides(riderId: string): Promise<RideRequestRecord[]> {
+    return (await this.requests.find({ riderId }).sort({ createdAt: -1 }).limit(20).toArray()).map(
+      (row) => row.record
+    );
+  }
+
+  async reservationForOffer(offerId: string): Promise<ReservationRecord | undefined> {
+    return (await this.reservations.findOne({ offerId, claimedOffer: true }))?.record;
   }
 
   async getReservation(id: string): Promise<ReservationRecord | undefined> {

@@ -1,6 +1,6 @@
 import { PGlite } from '@electric-sql/pglite';
 import { ProtocolError, type Offer } from '@sakyawira/openride-protocol';
-import type { ReservationRecord } from './domain';
+import type { ReservationRecord, RideRequestRecord } from './domain';
 import type { ProviderRepository } from './ports';
 
 export class PgliteProviderStore implements ProviderRepository {
@@ -10,6 +10,10 @@ export class PgliteProviderStore implements ProviderRepository {
     const db = await PGlite.create(path);
     await db.exec(`
       CREATE TABLE IF NOT EXISTS offers (id TEXT PRIMARY KEY, record JSONB NOT NULL);
+      CREATE TABLE IF NOT EXISTS ride_requests (
+        id TEXT PRIMARY KEY, rider_id TEXT NOT NULL, request_key TEXT NOT NULL,
+        created_at TEXT NOT NULL, record JSONB NOT NULL, UNIQUE(rider_id, request_key)
+      );
       CREATE TABLE IF NOT EXISTS reservations (
         id TEXT PRIMARY KEY, offer_id TEXT NOT NULL, driver_id TEXT NOT NULL, state TEXT NOT NULL, record JSONB NOT NULL
       );
@@ -35,6 +39,60 @@ export class PgliteProviderStore implements ProviderRepository {
     const result = await this.db.query<{ record: Offer }>('SELECT record FROM offers WHERE id=$1', [
       id,
     ]);
+    return result.rows[0]?.record;
+  }
+
+  async rideByKey(riderId: string, key: string): Promise<RideRequestRecord | undefined> {
+    const result = await this.db.query<{ record: RideRequestRecord }>(
+      'SELECT record FROM ride_requests WHERE rider_id=$1 AND request_key=$2',
+      [riderId, key]
+    );
+    return result.rows[0]?.record;
+  }
+
+  async createRide(record: RideRequestRecord): Promise<RideRequestRecord> {
+    return this.db.transaction(async (tx) => {
+      const inserted = await tx.query<{ id: string }>(
+        'INSERT INTO ride_requests (id,rider_id,request_key,created_at,record) VALUES ($1,$2,$3,$4,$5) ON CONFLICT DO NOTHING RETURNING id',
+        [record.id, record.riderId, record.requestKey, record.createdAt, JSON.stringify(record)]
+      );
+      if (!inserted.rows.length) {
+        const previous = await tx.query<{ record: RideRequestRecord }>(
+          'SELECT record FROM ride_requests WHERE rider_id=$1 AND request_key=$2',
+          [record.riderId, record.requestKey]
+        );
+        if (!previous.rows[0]) throw new Error('Ride request identity collision.');
+        return previous.rows[0].record;
+      }
+      await tx.query('INSERT INTO offers (id,record) VALUES ($1,$2)', [
+        record.offer.id,
+        JSON.stringify(record.offer),
+      ]);
+      return record;
+    });
+  }
+
+  async getRide(riderId: string, id: string): Promise<RideRequestRecord | undefined> {
+    const result = await this.db.query<{ record: RideRequestRecord }>(
+      'SELECT record FROM ride_requests WHERE rider_id=$1 AND id=$2',
+      [riderId, id]
+    );
+    return result.rows[0]?.record;
+  }
+
+  async listRides(riderId: string): Promise<RideRequestRecord[]> {
+    const result = await this.db.query<{ record: RideRequestRecord }>(
+      'SELECT record FROM ride_requests WHERE rider_id=$1 ORDER BY created_at DESC LIMIT 20',
+      [riderId]
+    );
+    return result.rows.map((row) => row.record);
+  }
+
+  async reservationForOffer(offerId: string): Promise<ReservationRecord | undefined> {
+    const result = await this.db.query<{ record: ReservationRecord }>(
+      "SELECT record FROM reservations WHERE offer_id=$1 AND state <> 'cancelled'",
+      [offerId]
+    );
     return result.rows[0]?.record;
   }
 

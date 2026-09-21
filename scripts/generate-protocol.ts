@@ -2,6 +2,14 @@ import { writeFile } from 'node:fs/promises';
 import { z } from 'zod';
 import {
   ACCEPT_SCHEMA,
+  BOOKING_SCHEMA,
+  CREATE_RIDE_SCHEMA,
+  PROVIDER_RIDE_INPUT_SCHEMA,
+  RIDE_REQUEST_SCHEMA,
+  QUOTE_INPUT_SCHEMA,
+  RIDE_QUOTE_SCHEMA,
+  RIDE_INPUT_SCHEMA,
+  RIDER_SNAPSHOT_SCHEMA,
   ID_SCHEMA,
   OFFER_SCHEMA,
   PREPARE_SCHEMA,
@@ -11,25 +19,6 @@ import {
   TRIP_ACTION_SCHEMA,
 } from '@sakyawira/openride-protocol';
 
-const BOOKING_SCHEMA = z.object({
-  id: z.uuid(),
-  driverId: ID_SCHEMA,
-  providerId: ID_SCHEMA,
-  offer: OFFER_SCHEMA,
-  state: z.enum([
-    'preparing',
-    'resolving',
-    'confirmed',
-    'in_progress',
-    'completed',
-    'cancelled',
-    'rejected',
-  ]),
-  version: z.number().int().positive(),
-  lastError: z.string().nullable(),
-  createdAt: z.iso.datetime(),
-  updatedAt: z.iso.datetime(),
-});
 const EVENT_SCHEMA = z.object({
   sequence: z.number().int().positive(),
   type: z.string(),
@@ -39,6 +28,14 @@ const EVENT_SCHEMA = z.object({
 });
 const SCHEMAS = {
   Offer: OFFER_SCHEMA,
+  QuoteInput: QUOTE_INPUT_SCHEMA,
+  RideInput: RIDE_INPUT_SCHEMA,
+  RideQuote: RIDE_QUOTE_SCHEMA,
+  CreateRideRequest: CREATE_RIDE_SCHEMA,
+  ProviderRideInput: PROVIDER_RIDE_INPUT_SCHEMA,
+  RideRequest: RIDE_REQUEST_SCHEMA,
+  RiderSnapshot: RIDER_SNAPSHOT_SCHEMA,
+  RideRequests: RIDE_REQUEST_SCHEMA.array(),
   AcceptRequest: ACCEPT_SCHEMA,
   PrepareRequest: PREPARE_SCHEMA,
   ProviderReservation: PROVIDER_RESERVATION_SCHEMA,
@@ -63,11 +60,16 @@ function schemaRef(name: string) {
 function response(name: string, description: string) {
   return { description, content: { 'application/json': { schema: schemaRef(name) } } };
 }
-function operation(id: string, tag: 'Driver' | 'Provider', result: string, body?: string) {
+function operation(
+  id: string,
+  tag: 'Driver' | 'Rider' | 'Provider',
+  result: string,
+  body?: string
+) {
   return {
     operationId: id,
     tags: [tag],
-    security: [{ [tag === 'Driver' ? 'DriverToken' : 'ProviderToken']: [] }],
+    security: [{ [`${tag}Token`]: [] }],
     ...(body
       ? {
           requestBody: {
@@ -106,8 +108,52 @@ const SPEC = {
       'Experimental reference contract. Driver and provider operations live on different participants. Demo-only fixture endpoints are excluded.',
   },
   servers: [{ url: 'http://127.0.0.1:4100', description: 'Driver coordinator' }],
-  tags: [{ name: 'Driver' }, { name: 'Provider' }],
+  tags: [{ name: 'Driver' }, { name: 'Rider' }, { name: 'Provider' }],
   paths: {
+    '/v0.1/rider/quotes': { post: operation('quoteRide', 'Rider', 'RideQuote', 'QuoteInput') },
+    '/v0.1/ride-quotes': {
+      servers: [{ url: 'http://127.0.0.1:4101' }],
+      post: operation('providerQuoteRide', 'Provider', 'RideQuote', 'RideInput'),
+    },
+    '/v0.1/rider/snapshot': { get: operation('riderSnapshot', 'Rider', 'RiderSnapshot') },
+    '/v0.1/rider/requests': {
+      post: {
+        ...operation('requestRide', 'Rider', 'RideRequest', 'CreateRideRequest'),
+        parameters: [
+          {
+            name: 'Idempotency-Key',
+            in: 'header',
+            required: true,
+            schema: z.toJSONSchema(ID_SCHEMA),
+          },
+        ],
+      },
+    },
+    '/v0.1/rider/requests/{providerId}/{id}': {
+      parameters: [
+        ID_PARAM,
+        { name: 'providerId', in: 'path', required: true, schema: z.toJSONSchema(ID_SCHEMA) },
+      ],
+      get: operation('readRideRequest', 'Rider', 'RideRequest'),
+    },
+    '/v0.1/rider-requests': {
+      servers: [{ url: 'http://127.0.0.1:4101' }],
+      post: operation('providerRequestRide', 'Provider', 'RideRequest', 'ProviderRideInput'),
+      get: {
+        ...operation('providerListRides', 'Provider', 'RideRequests'),
+        parameters: [
+          { name: 'riderId', in: 'query', required: true, schema: z.toJSONSchema(ID_SCHEMA) },
+        ],
+      },
+    },
+    '/v0.1/rider-requests/{id}': {
+      servers: [{ url: 'http://127.0.0.1:4101' }],
+      parameters: [
+        ID_PARAM,
+        { name: 'riderId', in: 'query', required: true, schema: z.toJSONSchema(ID_SCHEMA) },
+      ],
+      get: operation('providerReadRide', 'Provider', 'RideRequest'),
+    },
     '/v0.1/snapshot': { get: operation('driverSnapshot', 'Driver', 'Snapshot') },
     '/v0.1/events': {
       get: {
@@ -183,6 +229,11 @@ const SPEC = {
   },
   components: {
     securitySchemes: {
+      RiderToken: {
+        type: 'http',
+        scheme: 'bearer',
+        description: 'Verified rider identity; distinct from driver/provider credentials.',
+      },
       DriverToken: {
         type: 'http',
         scheme: 'bearer',
